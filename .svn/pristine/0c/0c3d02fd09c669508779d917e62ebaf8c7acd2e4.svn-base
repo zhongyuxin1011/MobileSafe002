@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <attr name="sia_title" format="string|reference" />
+    <attr name="sia_check" format="boolean" />
+    <attr name="sia_visable" format="boolean" />
+    <attr name="sia_titleColor" format="color" />
+    <attr name="sia_background">
+        <enum name="start" value="0" />
+        <enum name="middle" value="1" />
+        <enum name="end" value="2" />
+    </attr>
+
+    <declare-styleable name="SettingItemAttrs">
+        <attr name="sia_title" />
+        <attr name="sia_check" />
+        <attr name="sia_visable" />
+        <attr name="sia_titleColor" />
+        <attr name="sia_background" />
+    </declare-styleable>
+
+</resources>

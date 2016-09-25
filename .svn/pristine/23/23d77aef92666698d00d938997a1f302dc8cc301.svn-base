@@ -1,0 +1,200 @@
+package com.zyx1011.mobilesafe002;
+
+import com.lidroid.xutils.ViewUtils;
+import com.lidroid.xutils.view.annotation.ViewInject;
+import com.zyx1011.mobilesafe002.constants.Constants;
+import com.zyx1011.mobilesafe002.service.AddressService;
+import com.zyx1011.mobilesafe002.service.InterceptService;
+import com.zyx1011.mobilesafe002.utils.PreferenceUtils;
+import com.zyx1011.mobilesafe002.utils.ServiceStatusUtils;
+import com.zyx1011.mobilesafe002.view.AddrDialog;
+import com.zyx1011.mobilesafe002.view.SettingItemView;
+
+import android.app.Activity;
+import android.app.Service;
+import android.content.Intent;
+import android.graphics.Color;
+import android.os.Bundle;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.BaseAdapter;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+public class SettingActivity extends Activity {
+	@ViewInject(R.id.siv_setting_update_version)
+	private SettingItemView mSivUpdate;
+
+	@ViewInject(R.id.siv_setting_intercept)
+	private SettingItemView mSivIntercept;
+
+	@ViewInject(R.id.siv_setting_phone_area)
+	private SettingItemView mSivPhoneArea;
+
+	@ViewInject(R.id.siv_setting_show_style)
+	private SettingItemView mSivShowStyle;
+
+	private AddrDialog mDialog;
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_setting);
+		ViewUtils.inject(this);
+
+		initData();
+	}
+
+	/**
+	 * 按钮点击响应事件
+	 * 
+	 * @param v
+	 */
+	public void onSettingClick(View v) {
+		switch (v.getId()) {
+		case R.id.siv_setting_update_version: // 版本更新
+			switchMethod(Constants.MAIN_MENU.VERSION_UPDATE);
+			mSivUpdate.check(PreferenceUtils.getBoolean(this, Constants.MAIN_MENU.VERSION_UPDATE)); // 更新UI显示
+			break;
+
+		case R.id.siv_setting_intercept: // 拦截骚扰设置
+			serviceSwitch(Constants.MAIN_MENU.INTERCEPT_HARRY, InterceptService.class);
+			mSivIntercept.check(ServiceStatusUtils.isRunningService(this, InterceptService.class));
+
+			break;
+
+		case R.id.siv_setting_phone_area: // 归属地设置
+			serviceSwitch(Constants.MAIN_MENU.PHONE_AREA, AddressService.class);
+			mSivPhoneArea.check(PreferenceUtils.getBoolean(this, Constants.MAIN_MENU.PHONE_AREA));
+
+			showState(); // 更新显示风格状态
+			break;
+
+		case R.id.siv_setting_show_style:
+			mDialog = new AddrDialog(this);
+			mDialog.setAdapter(new AddrAdapter());
+			mDialog.setOnItemClickListener(new OnItemClickListener() {
+
+				@Override
+				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+					PreferenceUtils.putInt(getApplicationContext(), Constants.ADDRDIALOG.SELECTED,
+							Constants.ADDRDIALOG.ICONS[position]);
+					mDialog.dismiss();
+				}
+			});
+			mDialog.show();
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	/**
+	 * 服务状态转换
+	 */
+	private void serviceSwitch(String key, Class<? extends Service> clazz) {
+		Intent intent = new Intent(this, clazz);
+		if (ServiceStatusUtils.isRunningService(this, clazz)) {
+			stopService(intent);
+			PreferenceUtils.putBoolean(this, key, false);
+		} else {
+			startService(intent);
+			PreferenceUtils.putBoolean(this, key, true);
+		}
+	}
+
+	/**
+	 * 归属地显示设置的可否点击状态
+	 */
+	private void showState() {
+		if (ServiceStatusUtils.isRunningService(this, AddressService.class)) {
+			mSivShowStyle.setClickable(true);
+			mSivShowStyle.setTitleColor(Color.rgb(50, 50, 50));
+		} else {
+			mSivShowStyle.setClickable(false);
+			mSivShowStyle.setTitleColor(Color.GRAY);
+		}
+	}
+
+	/**
+	 * 功能开关状态切换
+	 */
+	private void switchMethod(String key) {
+		if (PreferenceUtils.getBoolean(this, key)) {
+			PreferenceUtils.putBoolean(this, key, false);
+		} else {
+			PreferenceUtils.putBoolean(this, key, true);
+		}
+	}
+
+	/**
+	 * 初始化数据
+	 */
+	private void initData() {
+		mSivUpdate.check(PreferenceUtils.getBoolean(getApplicationContext(), Constants.MAIN_MENU.VERSION_UPDATE));
+
+		// 开机后有可能被其他程序杀死,所以显示直接用判断服务是否运行的结果来设置
+		mSivIntercept.check(ServiceStatusUtils.isRunningService(this, InterceptService.class));
+		mSivPhoneArea.check(ServiceStatusUtils.isRunningService(this, AddressService.class));
+
+		showState();
+	}
+
+	private class AddrAdapter extends BaseAdapter {
+
+		@Override
+		public int getCount() {
+			return Constants.ADDRDIALOG.TITLES.length;
+		}
+
+		@Override
+		public Object getItem(int position) {
+			return Constants.ADDRDIALOG.TITLES[position];
+		}
+
+		@Override
+		public long getItemId(int position) {
+			return position;
+		}
+
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent) {
+			ViewHolder holder = null;
+			if (convertView == null) {
+				holder = new ViewHolder();
+				convertView = View.inflate(getApplicationContext(), R.layout.dialog_addrdailog_area, null);
+				convertView.setTag(holder);
+				
+				holder.ivBackground = (ImageView) convertView.findViewById(R.id.iv_addrdialog_background);
+				holder.tvColor = (TextView) convertView.findViewById(R.id.tv_addrdialog_color);
+				holder.ivSelected = (ImageView) convertView.findViewById(R.id.iv_addrdialog_selected);
+			}else {
+				holder = (ViewHolder) convertView.getTag();
+			}
+
+			holder.ivBackground.setBackgroundResource(Constants.ADDRDIALOG.ICONS[position]);
+			holder.tvColor.setText(Constants.ADDRDIALOG.TITLES[position]);
+
+			int selected = PreferenceUtils.getInt(getApplicationContext(), Constants.ADDRDIALOG.SELECTED,
+					R.drawable.dg_button_cancel_normal);
+			if (Constants.ADDRDIALOG.ICONS[position] == selected) {
+				holder.ivSelected.setVisibility(View.VISIBLE);
+			} else {
+				holder.ivSelected.setVisibility(View.GONE);
+			}
+
+			return convertView;
+		}
+
+	}
+
+	private class ViewHolder {
+		public ImageView ivBackground;
+		public TextView tvColor;
+		public ImageView ivSelected;
+	}
+
+}

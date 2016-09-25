@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <TextView
+        style="@style/pageTitle"
+        android:text="4.激活设备管理员" />
+
+    <TextView
+        style="@style/matchAndWrap"
+        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="15dp"
+        android:text="设备管理员:"
+        android:textSize="18sp" />
+
+    <TextView
+        style="@style/protectText"
+        android:text="远程锁屏,远程销毁数据等功能需要激活设备管理员!" />
+
+    <TextView
+        android:id="@+id/tv_protect_set3_selectnum"
+        style="@style/matchAndWrap"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/tv_protect_pagebtn_selector"
+        android:clickable="true"
+        android:drawableRight="@drawable/admin_activated"
+        android:gravity="center"
+        android:padding="10dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:text="激活设备管理员"
+        android:textSize="18sp" />
+
+    <RelativeLayout style="@style/matchAndMatch" >
+
+        <ImageView
+            style="@style/wrapAndWrap"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="80dp"
+            android:src="@drawable/step_4" />
+
+        <RelativeLayout
+            style="@style/matchAndWrap"
+            android:layout_alignParentBottom="true"
+            android:layout_marginTop="10dp"
+            android:padding="5dp" >
+
+            <LinearLayout
+                style="@style/wrapAndWrap"
+                android:layout_centerInParent="true" >
+
+                <ImageView
+                    style="@style/wrapAndWrap"
+                    android:src="@drawable/presence_invisible" />
+
+                <ImageView
+                    style="@style/wrapAndWrap"
+                    android:src="@drawable/presence_invisible" />
+
+                <ImageView
+                    style="@style/wrapAndWrap"
+                    android:src="@drawable/presence_invisible" />
+
+                <ImageView
+                    style="@style/wrapAndWrap"
+                    android:src="@drawable/presence_online" />
+
+                <ImageView
+                    style="@style/wrapAndWrap"
+                    android:src="@drawable/presence_invisible" />
+            </LinearLayout>
+
+            <TextView
+                style="@style/protectButton"
+                android:layout_alignParentLeft="true"
+                android:drawableLeft="@drawable/pre"
+                android:onClick="preClick"
+                android:text="上一步" />
+
+            <TextView
+                style="@style/protectButton"
+                android:layout_alignParentRight="true"
+                android:drawableRight="@drawable/next"
+                android:onClick="nextClick"
+                android:text="下一步" />
+        </RelativeLayout>
+    </RelativeLayout>
+
+</LinearLayout>

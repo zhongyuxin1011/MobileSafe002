@@ -1,0 +1,181 @@
+package com.zyx1011.mobilesafe002;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.lidroid.xutils.ViewUtils;
+import com.lidroid.xutils.view.annotation.ContentView;
+import com.lidroid.xutils.view.annotation.ViewInject;
+import com.zyx1011.mobilesafe002.engine.ProcessProvider;
+import com.zyx1011.mobilesafe002.entity.ProcessInfo;
+import com.zyx1011.mobilesafe002.view.ProgressDes;
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.text.format.Formatter;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.CheckBox;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.TextView;
+
+@ContentView(R.layout.activity_processmanager)
+public class ProcessManagerActivity extends Activity {
+
+	@ViewInject(R.id.pd_processmanager_process)
+	private ProgressDes mPdProcess;
+
+	@ViewInject(R.id.pd_processmanager_data)
+	private ProgressDes mPdData;
+
+	@ViewInject(R.id.lv_processmanager_info)
+	private ListView mLvInfo;
+
+	@ViewInject(R.id.pb_processmanager_loading)
+	private LinearLayout mLoading;
+
+	private List<ProcessInfo> mInfos;
+	private List<ProcessInfo> mUserInfos;
+	private List<ProcessInfo> mSystemInfos;
+	private ProcessAdapter mAdapter;
+	private LayoutInflater mInflater;
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		ViewUtils.inject(this);
+
+		initView();
+		initData();
+	}
+
+	private void initData() {
+		new Thread(new Runnable() {
+
+			public void run() {
+				mInfos = ProcessProvider.getAllRunningProcessInfo(getApplicationContext());
+
+				if (mInfos.size() > 0) {
+
+					for (ProcessInfo processInfo : mInfos) {
+						if (processInfo.isSystem()) {
+							mSystemInfos.add(processInfo);
+						} else {
+							mUserInfos.add(processInfo);
+						}
+					}
+
+					runOnUiThread(new Runnable() {
+
+						public void run() {
+							if (mAdapter == null) {
+								mAdapter = new ProcessAdapter();
+								mLvInfo.setAdapter(mAdapter);
+							}
+
+							mLvInfo.setVisibility(View.VISIBLE);
+							mLoading.setVisibility(View.GONE);
+
+							// 清空集合中原来的数据,然后按顺序重新添加
+							mInfos.clear();
+							mInfos.addAll(mUserInfos);
+							mInfos.addAll(mSystemInfos);
+						}
+					});
+				}
+			}
+		}).start();
+	}
+
+	private void initView() {
+		mLvInfo.setVisibility(View.INVISIBLE);
+		mInflater = LayoutInflater.from(this);
+		mSystemInfos = new ArrayList<>();
+		mUserInfos = new ArrayList<>();
+
+		initHaed();
+	}
+
+	/**
+	 * 初始化进度条显示数据
+	 */
+	private void initHaed() {
+		mPdProcess.setType("进程");
+		int runningProcessCount = ProcessProvider.getRunningProcessCount(this);
+		int allProcessCount = ProcessProvider.getAllProcessCount(this);
+
+		mPdProcess.setUsed(runningProcessCount + " running");
+		mPdProcess.setFree(allProcessCount + " all");
+		mPdProcess.setProgress(runningProcessCount, allProcessCount);
+
+		mPdData.setType("内存");
+		long usedMen = ProcessProvider.getUsedMen(this);
+		long availMen = ProcessProvider.getAvailMen(this);
+		long totalMen = ProcessProvider.getTotalMen(this);
+
+		mPdData.setUsed(Formatter.formatFileSize(this, usedMen) + " used");
+		mPdData.setFree(Formatter.formatFileSize(this, availMen) + " avail");
+		mPdData.setProgress(usedMen, totalMen);
+	}
+
+	private class ProcessAdapter extends BaseAdapter {
+
+		@Override
+		public int getCount() {
+			return mInfos.size();
+		}
+
+		@Override
+		public Object getItem(int position) {
+			if (position < mUserInfos.size()) {
+				return mUserInfos.get(position);
+			} else {
+				return mSystemInfos.get(position);
+			}
+		}
+
+		@Override
+		public long getItemId(int position) {
+			return position;
+		}
+
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent) {
+			ViewHolder holder = null;
+			if (convertView == null) {
+				convertView = mInflater.inflate(R.layout.listview_processmanager_item, parent, false);
+				holder = new ViewHolder();
+				holder.ivIcon = (ImageView) convertView.findViewById(R.id.iv_processmanager_item_icon);
+				holder.tvName = (TextView) convertView.findViewById(R.id.tv_processmanager_item_name);
+				holder.tvMem = (TextView) convertView.findViewById(R.id.tv_processmanager_item_mem);
+				holder.cbCheck = (CheckBox) convertView.findViewById(R.id.cb_processmanager_item_check);
+
+				convertView.setTag(holder);
+			} else {
+				holder = (ViewHolder) convertView.getTag();
+			}
+
+			ProcessInfo info = mInfos.get(position);
+
+			holder.ivIcon.setImageDrawable(info.getIcon());
+			holder.tvName.setText(info.getApkName());
+			holder.tvMem.setText("used " + Formatter.formatFileSize(getApplicationContext(), info.getUsedMem()));
+			holder.cbCheck.setChecked(info.isChecked());
+
+			return convertView;
+		}
+
+		private class ViewHolder {
+			ImageView ivIcon;
+			TextView tvName;
+			TextView tvMem;
+			CheckBox cbCheck;
+		}
+
+	}
+
+}

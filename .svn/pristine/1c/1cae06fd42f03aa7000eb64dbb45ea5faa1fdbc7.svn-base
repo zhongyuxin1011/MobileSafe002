@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <TextView
+        style="@style/pageTitle"
+        android:text="软件管家" />
+
+    <com.zyx1011.mobilesafe002.view.ProgressDes
+        android:id="@+id/pd_softmanager_data"
+        style="@style/matchAndWrap"
+        android:layout_marginTop="5dp" />
+
+    <com.zyx1011.mobilesafe002.view.ProgressDes
+        android:id="@+id/pd_softmanager_sd"
+        style="@style/matchAndWrap"
+        android:layout_marginTop="2dp" />
+
+    <TextView
+        android:id="@+id/tv_softmanager_head"
+        style="@style/matchAndWrap"
+        android:background="@android:color/holo_blue_light"
+        android:paddingBottom="5dp"
+        android:layout_marginTop="5dp"
+        android:paddingLeft="10dp"
+        android:paddingTop="5dp" />
+
+    <FrameLayout style="@style/matchAndMatch" >
+
+        <include
+            android:id="@+id/pb_softmanager_loading"
+            layout="@layout/loading" />
+
+        <ListView
+            android:id="@+id/lv_softmanager_info"
+            style="@style/matchAndWrap" >
+        </ListView>
+    </FrameLayout>
+
+</LinearLayout>

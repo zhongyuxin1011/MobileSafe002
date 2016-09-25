@@ -1,0 +1,150 @@
+package com.zyx1011.mobilesafe002;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.lidroid.xutils.ViewUtils;
+import com.lidroid.xutils.view.annotation.ContentView;
+import com.lidroid.xutils.view.annotation.ViewInject;
+import com.zyx1011.mobilesafe002.constants.Constants;
+import com.zyx1011.mobilesafe002.entity.ContactInfo;
+import com.zyx1011.mobilesafe002.utils.ContactUtils;
+
+import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.BaseAdapter;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.TextView;
+
+@ContentView(R.layout.activity_safephone)
+public class SafePhone extends Activity {
+
+	private List<ContactInfo> mContacts;
+	private ProgressDialog mDialog;
+
+	@ViewInject(R.id.lv_safephone_number)
+	private ListView mLvPhones;
+
+	private class ViewHolder {
+		public ImageView ivPic;
+		public TextView tvName;
+		public TextView tvPhone;
+	}
+
+	private class ContactAdapter extends BaseAdapter {
+
+		@Override
+		public int getCount() {
+			return mContacts.size();
+		}
+
+		@Override
+		public Object getItem(int position) {
+			return mContacts.get(position);
+		}
+
+		@Override
+		public long getItemId(int position) {
+			return position;
+		}
+
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent) {
+			ContactInfo info = mContacts.get(position);
+			ViewHolder holder = null;
+
+			if (convertView == null) {
+				holder = new ViewHolder();
+				convertView = View.inflate(SafePhone.this,
+						R.layout.listview_safephone_item, null);
+				convertView.setTag(holder);
+
+				holder.ivPic = (ImageView) convertView
+						.findViewById(R.id.iv_safephone_item_pic);
+				holder.tvName = (TextView) convertView
+						.findViewById(R.id.tv_safephone_item_name);
+				holder.tvPhone = (TextView) convertView
+						.findViewById(R.id.tv_safephone_item_phone);
+			} else {
+				holder = (ViewHolder) convertView.getTag();
+			}
+
+			holder.ivPic.setImageBitmap(ContactUtils.getBitMapById(
+					SafePhone.this, info.getId()));
+			holder.tvName.setText(info.getName());
+			holder.tvPhone.setText(info.getPhone());
+
+			return convertView;
+		}
+
+	}
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		ViewUtils.inject(this);
+
+		initView();
+		loadData();
+	}
+
+	/**
+	 * 显示进度对话框
+	 */
+	private void initView() {
+		mDialog = new ProgressDialog(this);
+		mDialog.setTitle("提示:");
+		mDialog.setIcon(android.R.drawable.ic_dialog_alert);
+		mDialog.setMessage("正在加载中...");
+		mDialog.setCancelable(false); // 点back不能取消
+		mDialog.show();
+	}
+
+	/**
+	 * 加载数据
+	 */
+	private void loadData() {
+		mContacts = new ArrayList<ContactInfo>();
+		new Thread(new Runnable() { // 考虑到联系人可能会有很多,用子线程去加载
+					public void run() {
+						mContacts = ContactUtils.getAllContact(SafePhone.this);
+
+						// 读取完数据,在主线程更新UI
+						runOnUiThread(new Runnable() {
+							public void run() {
+								doEvent();
+							}
+						});
+					}
+				}).start();
+	}
+
+	/**
+	 * 初始化ListView点击事件(设置监听器)
+	 */
+	private void doEvent() {
+		mDialog.dismiss(); // 让进度对话框消失
+
+		mLvPhones.setAdapter(new ContactAdapter());
+		mLvPhones.setOnItemClickListener(new OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view,
+					int position, long id) {
+				Intent intent = new Intent();
+				intent.putExtra(Constants.TELEPHONE, mContacts.get(position)
+						.getPhone());
+				setResult(RESULT_OK, intent);
+				SafePhone.this.finish();
+			}
+		});
+	}
+
+}

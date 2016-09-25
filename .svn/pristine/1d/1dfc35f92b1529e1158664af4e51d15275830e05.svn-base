@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/matchAndMatch"
+    android:background="@drawable/it_main_menu_selector"
+    android:padding="8dp"
+    android:scaleType="centerInside" >
+
+    <ImageView
+        android:id="@+id/iv_menu_pic"
+        style="@style/wrapAndWrap"
+        android:padding="5dp" />
+
+    <LinearLayout
+        style="@style/matchAndWrap"
+        android:layout_centerInParent="true"
+        android:layout_toRightOf="@id/iv_menu_pic"
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/tv_menu_title"
+            style="@style/matchAndWrap"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/tv_menu_desc"
+            style="@style/matchAndWrap"
+            android:layout_marginTop="5dp"
+            android:singleLine="true"
+            android:textSize="15sp" />
+    </LinearLayout>
+
+</RelativeLayout>

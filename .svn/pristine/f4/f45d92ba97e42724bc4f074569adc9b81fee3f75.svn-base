@@ -1,0 +1,61 @@
+package com.zyx1011.mobilesafe002;
+
+import com.lidroid.xutils.ViewUtils;
+import com.lidroid.xutils.view.annotation.ContentView;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+
+@ContentView(R.layout.activity_toolsmanager)
+public class ToolsManagerActivity extends Activity {
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		ViewUtils.inject(this);
+	}
+
+	/**
+	 * 按钮点击响应事件
+	 * 
+	 * @param v
+	 */
+	public void onToolsClick(View v) {
+		switch (v.getId()) {
+		case R.id.siv_toolsmanager_phonearea: // 归属地查询
+			Intent intent = new Intent(this, PhoneAreaActivity.class);
+			startActivity(intent);
+			break;
+
+		case R.id.siv_toolsmanager_phonenum: // 常用号码查询
+
+			break;
+
+		case R.id.siv_toolsmanager_applock: // 程序锁管理
+
+			break;
+
+		case R.id.siv_toolsmanager_smsbackup: // 短信备份
+
+			break;
+
+		case R.id.siv_toolsmanager_smsrestore: // 短信还原
+
+			break;
+
+		case R.id.siv_toolsmanager_watchdog1: // 电子狗服务1
+
+			break;
+
+		case R.id.siv_toolsmanager_watchdog2: // 电子狗服务2
+
+			break;
+
+		default:
+			break;
+		}
+	}
+
+}

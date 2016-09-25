@@ -1,0 +1,87 @@
+package com.zyx1011.mobilesafe002;
+
+import com.lidroid.xutils.ViewUtils;
+import com.lidroid.xutils.view.annotation.ContentView;
+import com.lidroid.xutils.view.annotation.ViewInject;
+import com.lidroid.xutils.view.annotation.event.OnClick;
+import com.zyx1011.mobilesafe002.constants.Constants;
+import com.zyx1011.mobilesafe002.utils.PreferenceUtils;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.graphics.drawable.Drawable;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.TextView;
+import android.widget.Toast;
+
+@ContentView(R.layout.activity_phoneprotect)
+public class PhoneProtect extends Activity {
+
+	@ViewInject(R.id.tv_phoneprotect_safenum)
+	private TextView mTvSafeNum;
+
+	@ViewInject(R.id.tv_phoneprotect_switch)
+	private TextView mTvSwitch;
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		ViewUtils.inject(this);
+
+		initData();
+	}
+
+	/**
+	 * 初始化显示数据
+	 */
+	private void initData() {
+		// 能进入此Activity代表已经设置了安全号码,直接取出显示
+		mTvSafeNum.setText(PreferenceUtils.getString(this, Constants.PROTECT_PHONE.SAFE_PHONE));
+
+		if (PreferenceUtils.getBoolean(this, Constants.PROTECT_PHONE.FLAG)) {
+			drawPic(R.drawable.lock);
+		} else {
+			drawPic(R.drawable.unlock);
+		}
+	}
+
+	/**
+	 * 根据状态显示图片
+	 */
+	@SuppressWarnings("deprecation")
+	private void drawPic(int resId) {
+		Drawable drawable = getResources().getDrawable(resId);
+		drawable.setBounds(0, 0, drawable.getMinimumWidth(), drawable.getMinimumHeight());
+		mTvSwitch.setCompoundDrawables(null, null, drawable, null);
+	}
+
+	/**
+	 * 开启/关闭防盗保护
+	 * 
+	 * @param v
+	 */
+	@OnClick(R.id.tv_phoneprotect_switch)
+	public void switchClick(View v) {
+		if (PreferenceUtils.getBoolean(this, Constants.PROTECT_PHONE.FLAG)) {
+			PreferenceUtils.putBoolean(this, Constants.PROTECT_PHONE.FLAG, false);
+			drawPic(R.drawable.unlock);
+			Toast.makeText(this, "防盗保护已关闭!", Toast.LENGTH_SHORT).show();
+		} else {
+			PreferenceUtils.putBoolean(this, Constants.PROTECT_PHONE.FLAG, true);
+			drawPic(R.drawable.lock);
+			Toast.makeText(this, "防盗保护已开启!", Toast.LENGTH_SHORT).show();
+		}
+	}
+
+	/**
+	 * 重新设置防盗信息
+	 */
+	@OnClick(R.id.tv_phoneprotect_reset)
+	public void resetClick(View v) {
+		Intent intent = new Intent(this, ProtectActivity1.class);
+		startActivity(intent);
+		this.finish(); // 关闭当前Activity
+	}
+
+}

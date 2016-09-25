@@ -1,0 +1,196 @@
+package com.zyx1011.mobilesafe002;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.lidroid.xutils.ViewUtils;
+import com.lidroid.xutils.view.annotation.ContentView;
+import com.lidroid.xutils.view.annotation.ViewInject;
+import com.zyx1011.mobilesafe002.constants.Constants;
+import com.zyx1011.mobilesafe002.entity.ContactInfo;
+import com.zyx1011.mobilesafe002.utils.ContactUtils;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
+import android.view.animation.LayoutAnimationController;
+import android.view.animation.TranslateAnimation;
+import android.widget.AbsListView;
+import android.widget.AbsListView.OnScrollListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.BaseAdapter;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+
+@ContentView(R.layout.activity_selectphone)
+public class SelectPhoneActivity extends Activity {
+
+	protected static final int count = 10;
+	private List<ContactInfo> mContacts;
+
+	@ViewInject(R.id.lv_safephone_number)
+	private ListView mLvPhones;
+
+	@ViewInject(R.id.pb_safephone_loading)
+	private ProgressBar mPbLoad;
+
+	protected int offset;
+	private boolean flag; // 标记是否为第一次加载
+	private ContactAdapter mAdapter;
+
+	private class ViewHolder {
+		public ImageView ivPic;
+		public TextView tvName;
+		public TextView tvPhone;
+	}
+
+	private class ContactAdapter extends BaseAdapter {
+
+		@Override
+		public int getCount() {
+			return mContacts.size();
+		}
+
+		@Override
+		public Object getItem(int position) {
+			return mContacts.get(position);
+		}
+
+		@Override
+		public long getItemId(int position) {
+			return position;
+		}
+
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent) {
+			ContactInfo info = mContacts.get(position);
+			ViewHolder holder = null;
+
+			if (convertView == null) {
+				holder = new ViewHolder();
+				convertView = View.inflate(SelectPhoneActivity.this, R.layout.listview_safephone_item, null);
+				convertView.setTag(holder);
+
+				holder.ivPic = (ImageView) convertView.findViewById(R.id.iv_safephone_item_pic);
+				holder.tvName = (TextView) convertView.findViewById(R.id.tv_safephone_item_name);
+				holder.tvPhone = (TextView) convertView.findViewById(R.id.tv_safephone_item_phone);
+			} else {
+				holder = (ViewHolder) convertView.getTag();
+			}
+
+			holder.ivPic.setImageBitmap(ContactUtils.getBitMapById(SelectPhoneActivity.this, info.getId()));
+			holder.tvName.setText(info.getName());
+			holder.tvPhone.setText(info.getPhone());
+
+			return convertView;
+		}
+
+	}
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		ViewUtils.inject(this);
+
+		initView();
+		loadData();
+		initAnim();
+	}
+
+	/**
+	 * 给ListView设置动画效果
+	 */
+	private void initAnim() {
+		AnimationSet set = new AnimationSet(true);
+
+		Animation animation = new AlphaAnimation(0.0f, 1.0f);
+		animation.setDuration(50);
+		set.addAnimation(animation);
+
+		animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF, 0.0f,
+				Animation.RELATIVE_TO_SELF, -1.0f, Animation.RELATIVE_TO_SELF, 0.0f);
+		animation.setDuration(100);
+		set.addAnimation(animation);
+
+		LayoutAnimationController controller = new LayoutAnimationController(set, 0.5f);
+		mLvPhones.setLayoutAnimation(controller);
+	}
+
+	/**
+	 * 显示进度对话框
+	 */
+	private void initView() {
+		mContacts = new ArrayList<>();
+	}
+
+	/**
+	 * 加载数据
+	 */
+	private void loadData() {
+		new Thread(new Runnable() { // 考虑到联系人可能会有很多,用子线程去加载
+			public void run() {
+				mContacts.addAll(ContactUtils.getPartPhone(SelectPhoneActivity.this, offset, count));
+
+				// 读取完数据,在主线程更新UI
+				runOnUiThread(new Runnable() {
+					public void run() {
+						doEvent();
+					}
+				});
+			}
+		}).start();
+	}
+
+	/**
+	 * 初始化ListView点击事件(设置监听器)
+	 */
+	private void doEvent() {
+		if (!flag) {
+			flag = true; // 只加载一次
+
+			mAdapter = new ContactAdapter();
+			mLvPhones.setAdapter(mAdapter);
+			mLvPhones.setOnItemClickListener(new OnItemClickListener() {
+
+				@Override
+				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+					Intent intent = new Intent();
+					intent.putExtra(Constants.PROTECT_PHONE.TELEPHONE, mContacts.get(position).getPhone());
+					setResult(RESULT_OK, intent);
+					SelectPhoneActivity.this.finish();
+				}
+			});
+
+			mLvPhones.setOnScrollListener(new OnScrollListener() {
+
+				@Override
+				public void onScrollStateChanged(AbsListView view, int scrollState) {
+					int lastVisiblePosition = mLvPhones.getLastVisiblePosition();
+					if (scrollState == OnScrollListener.SCROLL_STATE_IDLE
+							&& lastVisiblePosition == (mContacts.size() - 1)) {
+						mPbLoad.setVisibility(View.VISIBLE);
+
+						offset += 10;
+						loadData();
+					}
+				}
+
+				@Override
+				public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+				}
+			});
+		}
+
+		mAdapter.notifyDataSetChanged(); // 通知适配器数据发生了改变
+		mPbLoad.setVisibility(View.GONE); // 让进度对话框消失
+	}
+
+}

@@ -1,0 +1,98 @@
+package com.zyx1011.mobilesafe002.utils;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import android.content.ContentResolver;
+import android.content.Context;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+
+import com.zyx1011.mobilesafe002.entity.ContactInfo;
+
+/**
+ * 操作内容内容解析者获取联系人数据
+ * 
+ * @author zhongyuxin
+ * 
+ */
+public class ContactUtils {
+	// 访问raw_contacts表的口令
+	public static final Uri RAW_CONTACTS_URI = Uri
+			.parse("content://com.android.contacts/raw_contacts");
+	// 访问data表的口令
+	public static final Uri DATA_URI = Uri
+			.parse("content://com.android.contacts/data");
+
+	/**
+	 * 获取所有联系人的姓名和电话号码
+	 * 
+	 * @param context
+	 * @return
+	 */
+	public static List<ContactInfo> getAllContact(Context context) {
+		List<ContactInfo> contactInfos = new ArrayList<ContactInfo>();
+		ContentResolver resolver = context.getContentResolver(); // 拿到内容解析者
+
+		Cursor id = resolver.query(RAW_CONTACTS_URI,
+				new String[] { "contact_id" }, null, null, null);
+		if (id != null) {
+			while (id.moveToNext()) {
+				int contactId = id.getInt(0);
+
+				ContactInfo info = new ContactInfo();
+				info.setId(contactId); // 获取contact_id
+
+				Cursor nameAndPhone = resolver.query(DATA_URI, new String[] {
+						"mimetype", "data1" }, "raw_contact_id=?",
+						new String[] { String.valueOf(contactId) }, null);
+				if (nameAndPhone != null) {
+					while (nameAndPhone.moveToNext()) {
+						String item = nameAndPhone.getString(0);
+						// 获取姓名
+						if ("vnd.android.cursor.item/name".equals(item)) {
+							info.setName(nameAndPhone.getString(1));
+						}
+
+						// 获取电话号码
+						if ("vnd.android.cursor.item/phone_v2".equals(item)) {
+							info.setPhone(nameAndPhone.getString(1));
+						}
+					}
+					contactInfos.add(info); // 添加到集合中
+				}
+				nameAndPhone.close();
+			}
+			id.close();
+		}
+
+		return contactInfos;
+	}
+
+	/**
+	 * 获取联系人的图片
+	 * 
+	 * @param context
+	 * @param id
+	 * @return
+	 */
+	public static Bitmap getBitMapById(Context context, int id) {
+		Bitmap bitmap = null;
+		ContentResolver resolver = context.getContentResolver();
+		Cursor bmBinary = resolver.query(DATA_URI, new String[] { "mimetype",
+				"data15" }, "raw_contact_id=?",
+				new String[] { String.valueOf(id) }, null);
+		while (bmBinary.moveToNext()) {
+			if ("vnd.android.cursor.item/photo".equals(bmBinary
+					.getString(bmBinary.getColumnIndex("mimetype")))) {
+				byte[] data = bmBinary.getBlob(bmBinary
+						.getColumnIndex("data15")); // 获取bates数组数据
+				// 通过bytes数组创建图片
+				bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+			}
+		}
+		return bitmap;
+	}
+}

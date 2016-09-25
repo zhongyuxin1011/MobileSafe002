@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal" >
+
+    <TextView
+        android:background="@android:color/darker_gray"
+        style="@style/matchAndWrap"
+        android:padding="3dp"
+        android:drawableLeft="@drawable/address"
+        android:drawablePadding="3dp"
+        android:ellipsize="end"
+        android:gravity="center_vertical"
+        android:singleLine="true"
+        android:text="黑马手机卫士-为你的手机护航"
+        android:textColor="@android:color/holo_blue_light"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+</LinearLayout>

@@ -1,0 +1,120 @@
+package com.zyx1011.mobilesafe002;
+
+import com.lidroid.xutils.ViewUtils;
+import com.lidroid.xutils.view.annotation.ContentView;
+import com.lidroid.xutils.view.annotation.ViewInject;
+import com.lidroid.xutils.view.annotation.event.OnClick;
+import com.zyx1011.mobilesafe002.constants.Constants;
+import com.zyx1011.mobilesafe002.receiver.SafeAdminReceiver;
+
+import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.drawable.Drawable;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.TextView;
+import android.widget.Toast;
+
+@ContentView(R.layout.activity_protect_set4)
+public class ProtectActivity4 extends BaseProtectActivity {
+
+	@ViewInject(R.id.tv_protect_set4_admin)
+	private TextView mTvAdminActivate;
+
+	private DevicePolicyManager mDpm;
+	private ComponentName mWho;
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		ViewUtils.inject(this);
+
+		initData();
+	}
+
+	/**
+	 * 初始化数据
+	 */
+	private void initData() {
+		mDpm = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
+		mWho = new ComponentName(this, SafeAdminReceiver.class);
+
+		if (mDpm.isAdminActive(mWho)) {
+			setDrawable(R.drawable.admin_activated);
+		} else {
+			setDrawable(R.drawable.admin_inactivated);
+		}
+	}
+
+	@Override
+	public boolean performPre() {
+		Intent intent = new Intent(this, ProtectActivity3.class);
+		startActivity(intent);
+		return false;
+	}
+
+	@Override
+	public boolean performNext() {
+		if (mDpm.isAdminActive(mWho)) {
+			Intent intent = new Intent(this, ProtectActivity5.class);
+			startActivity(intent);
+			return false;
+		}
+		Toast.makeText(this, "手机防盗功能需要激活设备管理员!", Toast.LENGTH_SHORT).show();
+		return true;
+	}
+
+	@OnClick(R.id.tv_protect_set4_admin)
+	public void adminClick(View v) {
+		if (mDpm.isAdminActive(mWho)) {
+			mDpm.removeActiveAdmin(mWho); // 取消激活设备管理员
+
+			setDrawable(R.drawable.admin_inactivated);
+
+			Toast.makeText(this, "设备管理员未激活!", Toast.LENGTH_SHORT).show();
+		} else {
+			Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
+			intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, mWho);
+			intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "激活设备管理员,以使黑马手机卫士的远程功能能正常使用!");
+			startActivityForResult(intent, Constants.PROTECT_PHONE.REQ_ACTIVE_ADMIN);
+		}
+	}
+
+	/**
+	 * 在TextView右侧显示图片
+	 */
+	@SuppressWarnings("deprecation")
+	private void setDrawable(int resId) {
+		Drawable drawable = getResources().getDrawable(resId);
+		drawable.setBounds(0, 0, drawable.getMinimumWidth(), drawable.getMinimumHeight());
+		mTvAdminActivate.setCompoundDrawables(null, null, drawable, null);
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+		switch (requestCode) {
+		case Constants.PROTECT_PHONE.REQ_ACTIVE_ADMIN:
+			if (resultCode == RESULT_OK) {
+				if (mDpm.isAdminActive(mWho)) {
+					setDrawable(R.drawable.admin_activated);
+
+					Toast.makeText(this, "设备管理员已激活!", Toast.LENGTH_SHORT).show();
+				} else {
+					setDrawable(R.drawable.admin_inactivated);
+
+					Toast.makeText(this, "设备管理员未激活!", Toast.LENGTH_SHORT).show();
+				}
+			} else {
+				Toast.makeText(this, "设备管理员未激活!", Toast.LENGTH_SHORT).show();
+			}
+			break;
+
+		default:
+			break;
+		}
+	}
+
+}

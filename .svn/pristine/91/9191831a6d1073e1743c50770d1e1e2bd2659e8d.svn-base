@@ -1,0 +1,474 @@
+package com.zyx1011.mobilesafe002;
+
+import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.github.lzyzsd.circleprogress.ArcProgress;
+import com.lidroid.xutils.ViewUtils;
+import com.lidroid.xutils.view.annotation.ContentView;
+import com.lidroid.xutils.view.annotation.ViewInject;
+import com.zyx1011.mobilesafe002.db.AntiVirusDao;
+import com.zyx1011.mobilesafe002.entity.AntiVirusInfo;
+import com.zyx1011.mobilesafe002.utils.Md5Utils;
+
+import android.animation.Animator;
+import android.animation.Animator.AnimatorListener;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
+import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.TextView;
+
+@ContentView(R.layout.activity_antivirus)
+public class AntiVirusActivity extends Activity {
+
+	@ViewInject(R.id.line_antivirus_anim)
+	private View mAnim;
+
+	@ViewInject(R.id.iv_antivirus_left)
+	private ImageView mLeft;
+
+	@ViewInject(R.id.iv_antivirus_right)
+	private ImageView mRight;
+
+	@ViewInject(R.id.rl_antivirus_scan)
+	private View mScan;
+
+	@ViewInject(R.id.ap_antivirus_progress)
+	private ArcProgress mAp;
+
+	@ViewInject(R.id.tv_antivirus_packagename)
+	private TextView mPackageName;
+
+	@ViewInject(R.id.line_antivirus_result)
+	private View mResult;
+
+	@ViewInject(R.id.tv_antivirus_desc)
+	private TextView mTvDesc;
+
+	@ViewInject(R.id.btn_antivirus_rescan)
+	private Button mBtnRescan;
+
+	@ViewInject(R.id.lv_antivirus_info)
+	private ListView mLvInfo;
+
+	private boolean mIsFinish;
+	private ScanTask mTask;
+	private List<AntiVirusInfo> mInfos;
+	private AntiAdapter mAdapter;
+	private AntiVirusDao mDao;
+	private PackageManager mPm;
+	private int mVirusCount; // 病毒技术
+	private AntiVirusInfo mUnInfo; // 要被卸载的病毒应用信息
+	private UnVirusReceiver mReceiver;
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		ViewUtils.inject(this);
+
+		mPm = getPackageManager();
+
+		initData();
+		initEvent();
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		mIsFinish = true; // 失去焦点,停止扫描
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		if (mReceiver != null) { // 反注册广播
+			unregisterReceiver(mReceiver);
+			mReceiver = null;
+		}
+	}
+
+	/**
+	 * 初始化数据
+	 */
+	private void initData() {
+		mIsFinish = false;
+		mTask = new ScanTask();
+		mTask.execute();
+	}
+
+	/**
+	 * 初始化事件
+	 */
+	private void initEvent() {
+		mReceiver = new UnVirusReceiver(); // 注册卸载广播
+		IntentFilter filter = new IntentFilter();
+		filter.addAction(Intent.ACTION_PACKAGE_REMOVED); // 卸载的广播
+		filter.addDataScheme("package");
+		registerReceiver(mReceiver, filter);
+	}
+
+	/**
+	 * 异步加载
+	 * 
+	 * @author zhongyuxin
+	 */
+	private class ScanTask extends AsyncTask<Void, AntiVirusInfo, Void> {
+
+		private int mMax; // 最大值
+		private int mProgress; // 进度
+
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+			mAnim.setVisibility(View.GONE);
+			mResult.setVisibility(View.GONE);
+			mScan.setVisibility(View.VISIBLE);
+			mBtnRescan.setEnabled(false);
+
+			mVirusCount = 0; // 清空病毒个数记录
+			mInfos = new ArrayList<>();
+			mDao = new AntiVirusDao(getApplicationContext());
+
+			mAdapter = new AntiAdapter();
+			mLvInfo.setAdapter(mAdapter);
+		}
+
+		@Override
+		protected Void doInBackground(Void... params) {
+			List<PackageInfo> infos = mPm.getInstalledPackages(0);
+			if (infos != null) {
+				mMax = infos.size();
+
+				for (PackageInfo info : infos) {
+					if (mIsFinish) {
+						break;
+					}
+
+					try {
+						String md5 = Md5Utils.getMd5(new FileInputStream(info.applicationInfo.sourceDir));
+						String name = info.applicationInfo.loadLabel(mPm).toString();
+						Drawable icon = info.applicationInfo.loadIcon(mPm);
+						boolean isVirus = mDao.isVirus(md5); // 判断是否为病毒
+
+						AntiVirusInfo virusInfo = new AntiVirusInfo();
+						virusInfo.icon = icon;
+						virusInfo.name = name;
+						virusInfo.isVirus = isVirus;
+						virusInfo.packageName = info.packageName;
+
+						publishProgress(virusInfo);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					mProgress++;
+				}
+			}
+			return null;
+		}
+
+		@Override
+		protected void onProgressUpdate(AntiVirusInfo... values) {
+			super.onProgressUpdate(values);
+			if (mIsFinish) {
+				return;
+			}
+
+			AntiVirusInfo info = values[0];
+			if (info != null) {
+				mPackageName.setText(info.packageName);
+				mAp.setProgress((int) (mProgress * 100f / mMax + 0.5f));
+
+				if (info.isVirus) {
+					mInfos.add(0, info);
+					mVirusCount++; // 病毒个数自增
+				} else {
+					mInfos.add(mVirusCount, info); // 插入到病毒后
+				}
+			}
+
+			if (mAdapter != null) {
+				mAdapter.notifyDataSetChanged();
+				mLvInfo.smoothScrollToPosition(0); // 移动到首个item
+			}
+
+		}
+
+		@Override
+		protected void onPostExecute(Void result) {
+			super.onPostExecute(result);
+			if (mIsFinish) {
+				return;
+			}
+
+			if (mVirusCount > 0) {
+				mTvDesc.setText("请注意,您的手机存在风险!");
+				mTvDesc.setTextColor(Color.RED);
+			} else {
+				mTvDesc.setText("您的手机很安全,请放心使用!");
+				mTvDesc.setTextColor(Color.WHITE);
+			}
+
+			mScan.setDrawingCacheEnabled(true);
+			mScan.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+			Bitmap bitmap = mScan.getDrawingCache();
+
+			mLeft.setImageBitmap(getLeftBitmap(bitmap));
+			mRight.setImageBitmap(getRightBitmap(bitmap));
+
+			mAnim.setVisibility(View.VISIBLE);
+			mResult.setVisibility(View.VISIBLE);
+			mScan.setVisibility(View.GONE);
+			// mAnim.bringToFront();
+
+			openAnimation();
+		}
+	}
+	
+	/**
+	 * 左动画
+	 * 
+	 * @param srcBitmap
+	 * @return
+	 */
+	private Bitmap getLeftBitmap(Bitmap srcBitmap) {
+		int width = (int) (srcBitmap.getWidth() / 2f + 0.5f);
+		int height = srcBitmap.getHeight();
+		// 画纸
+		Bitmap destBitmap = Bitmap.createBitmap(width, height, srcBitmap.getConfig());
+		
+		Canvas canvas = new Canvas(destBitmap); // 画布
+		Paint paint = new Paint(); // 画笔
+		Matrix matrix = new Matrix(); // 规则(画尺)
+
+		canvas.drawBitmap(srcBitmap, matrix, paint); // 画画
+
+		return destBitmap;
+	}
+
+	/**
+	 * 右动画
+	 * 
+	 * @param srcBitmap
+	 * @return
+	 */
+	private Bitmap getRightBitmap(Bitmap srcBitmap) {
+		int width = (int) (srcBitmap.getWidth() / 2f + 0.5f);
+		int height = srcBitmap.getHeight();
+		Bitmap destBitmap = Bitmap.createBitmap(width, height, srcBitmap.getConfig());
+
+		Canvas canvas = new Canvas(destBitmap);
+		Paint paint = new Paint();
+		Matrix matrix = new Matrix();
+		matrix.setTranslate(-width, 0);
+
+		canvas.drawBitmap(srcBitmap, matrix, paint);
+
+		return destBitmap;
+	}
+
+	/**
+	 * 开门动画
+	 */
+	private void openAnimation() {
+		AnimatorSet set = new AnimatorSet(); // 属性动画集
+		mAnim.measure(0, 0);
+		// mLeft.setTranslationX(translationX);
+		// mRight.setTranslationX(translationX);
+		// mLeft.setAlpha(alpha);
+		// mRight.setAlpha(alpha);
+		set.playTogether(ObjectAnimator.ofFloat(mLeft, "translationX", 0, -mLeft.getMeasuredWidth()),
+				ObjectAnimator.ofFloat(mRight, "translationX", 0, mRight.getMeasuredWidth()),
+				ObjectAnimator.ofFloat(mLeft, "alpha", 1, 0.5f), 
+				ObjectAnimator.ofFloat(mRight, "alpha", 1, 0.5f),
+				ObjectAnimator.ofFloat(mResult, "alpha", 0, 1));
+		set.setDuration(1500);
+
+		set.addListener(new AnimatorListener() {
+
+			@Override
+			public void onAnimationStart(Animator animation) {
+			}
+
+			@Override
+			public void onAnimationRepeat(Animator animation) {
+			}
+
+			@Override
+			public void onAnimationEnd(Animator animation) {
+				mBtnRescan.setEnabled(true);
+				mAnim.setVisibility(View.GONE);
+			}
+
+			@Override
+			public void onAnimationCancel(Animator animation) {
+			}
+		});
+		set.start(); // 启动动画
+	}
+
+	/**
+	 * 重新扫描的点击事件
+	 * 
+	 * @param v
+	 */
+	public void scanClick(View v) {
+		mBtnRescan.setEnabled(false); // 先让按钮不可用
+		mAnim.setVisibility(View.VISIBLE); // 让动画层可见
+
+		AnimatorSet set = new AnimatorSet();
+		set.playTogether(ObjectAnimator.ofFloat(mLeft, "translationX", -mLeft.getMeasuredWidth(), 0),
+				ObjectAnimator.ofFloat(mRight, "translationX", mRight.getMeasuredWidth(), 0),
+				ObjectAnimator.ofFloat(mLeft, "alpha", 0.5f, 1), 
+				ObjectAnimator.ofFloat(mRight, "alpha", 0.5f, 1),
+				ObjectAnimator.ofFloat(mResult, "alpha", 1, 0));
+		set.setDuration(1500);
+
+		set.addListener(new AnimatorListener() {
+
+			@Override
+			public void onAnimationStart(Animator animation) {
+			}
+
+			@Override
+			public void onAnimationRepeat(Animator animation) {
+			}
+
+			@Override
+			public void onAnimationEnd(Animator animation) {
+				initData(); // 重新初始化数据
+			}
+
+			@Override
+			public void onAnimationCancel(Animator animation) {
+			}
+		});
+		set.start();
+	}
+
+	/**
+	 * ListView适配器
+	 * 
+	 * @author zhongyuxin
+	 */
+	private class AntiAdapter extends BaseAdapter {
+
+		@Override
+		public int getCount() {
+			if (mInfos != null && mInfos.size() > 0) {
+				return mInfos.size();
+			}
+			return 0;
+		}
+
+		@Override
+		public Object getItem(int position) {
+			if (mInfos != null) {
+				return mInfos.get(position);
+			}
+			return null;
+		}
+
+		@Override
+		public long getItemId(int position) {
+			return position;
+		}
+
+		@Override
+		public View getView(final int position, View convertView, ViewGroup parent) {
+			ViewHolder holder = null;
+			if (convertView == null) {
+				holder = new ViewHolder();
+
+				convertView = View.inflate(getApplicationContext(), R.layout.listview_antivirus_item, null);
+				holder.ivIcon = (ImageView) convertView.findViewById(R.id.iv_antivirus_info_icon);
+				holder.tvName = (TextView) convertView.findViewById(R.id.tv_antivirus_info_name);
+				holder.tvSafe = (TextView) convertView.findViewById(R.id.tv_antivirus_info_safe);
+				holder.ivClean = (ImageView) convertView.findViewById(R.id.iv_antivirus_info_clean);
+
+				convertView.setTag(holder);
+			} else {
+				holder = (ViewHolder) convertView.getTag();
+			}
+
+			if (mInfos != null) {
+				AntiVirusInfo info = mInfos.get(position);
+
+				holder.ivIcon.setImageDrawable(info.icon);
+				holder.tvName.setText(info.name);
+				holder.tvSafe.setText(info.isVirus ? "病毒" : "安全");
+				holder.tvSafe.setTextColor(info.isVirus ? Color.RED : Color.GREEN);
+				holder.ivClean.setVisibility(info.isVirus ? View.VISIBLE : View.GONE);
+
+				if (info.isVirus) { // 当判定是病毒时才设置点击事件监听器
+					holder.ivClean.setOnClickListener(new OnClickListener() {
+
+						@Override
+						public void onClick(View v) { // 卸载
+							mUnInfo = mInfos.get(position); // 重新获取数据,避免缓存干扰
+
+							Intent intent = new Intent();
+							intent.setAction("android.intent.action.DELETE"); // 隐式意图启动系统卸载界面
+							intent.setData(Uri.parse("package:" + mUnInfo.packageName));
+							startActivity(intent);
+						}
+					});
+				}
+			}
+
+			return convertView;
+		}
+		
+		private class ViewHolder {
+			public ImageView ivIcon;
+			public TextView tvName;
+			public TextView tvSafe;
+			public ImageView ivClean;
+		}
+	}
+
+
+	/**
+	 * 监听卸载广播
+	 * 
+	 * @author zhongyuxin
+	 */
+	private class UnVirusReceiver extends BroadcastReceiver {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String dataString = intent.getDataString();
+			String packageName = dataString.split(":")[1]; // 获取包名:package:xxx.xx.xx
+			if (mUnInfo.packageName.equals(packageName)) {
+				mInfos.remove(mUnInfo); // 移除该病毒
+
+				if (mAdapter != null) {
+					mAdapter.notifyDataSetChanged(); // 更新ListView
+				}
+			}
+		}
+	}
+
+}

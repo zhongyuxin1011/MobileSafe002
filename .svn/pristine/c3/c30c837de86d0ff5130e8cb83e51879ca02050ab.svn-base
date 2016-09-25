@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/tv_addintercept_title"
+        style="@style/pageTitle"
+        android:text="添加黑名单" />
+
+    <TextView
+        style="@style/wrapAndWrap"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="10dp"
+        android:padding="5dp"
+        android:text="电话号码:"
+        android:textColor="@android:color/black"
+        android:textSize="18sp" />
+
+    <EditText
+        android:id="@+id/et_addintercept_phone"
+        style="@style/matchAndWrap"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="5dp"
+        android:background="@drawable/et_addintercept_phone"
+        android:hint="请输入电话号码"
+        android:inputType="phone"
+        android:maxLength="11"
+        android:padding="10dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:singleLine="true"
+        android:textColor="@android:color/white"
+        android:textSize="15sp" />
+
+    <TextView
+        android:id="@+id/tv_addintercept_selectnum"
+        style="@style/wrapAndWrap"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/tv_protect_pagebtn_selector"
+        android:clickable="true"
+        android:gravity="center"
+        android:padding="10dp"
+        android:text="选择联系人"
+        android:textSize="12sp" />
+
+    <TextView
+        style="@style/wrapAndWrap"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="10dp"
+        android:padding="5dp"
+        android:text="拦截类型:"
+        android:textColor="@android:color/black"
+        android:textSize="18sp" />
+
+    <RadioGroup
+        android:id="@+id/rg_addintercept_type"
+        style="@style/matchAndWrap"
+        android:layout_marginLeft="25dp"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal" >
+
+        <RadioButton
+            android:id="@+id/rb_addintercept_call"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:checked="true"
+            android:text="电话"
+            android:textSize="15sp" />
+
+        <RadioButton
+            android:id="@+id/rb_addintercept_message"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="短信"
+            android:textSize="15sp" />
+
+        <RadioButton
+            android:id="@+id/rb_addintercept_all"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="全部"
+            android:textSize="15sp" />
+    </RadioGroup>
+
+    <LinearLayout
+        style="@style/matchAndMatch"
+        android:gravity="bottom"
+        android:padding="5dp" >
+
+        <Button
+            android:id="@+id/btn_addinercept_ok"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/tv_protect_pagebtn_selector"
+            android:padding="5dp"
+            android:text="保存"
+            android:textColor="@android:color/white" />
+
+        <Button
+            android:id="@+id/btn_addintercept_cancel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_weight="1"
+            android:background="@drawable/tv_protect_pswbtn_selector"
+            android:text="取消" />
+    </LinearLayout>
+
+</LinearLayout>

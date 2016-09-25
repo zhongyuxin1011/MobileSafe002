@@ -1,0 +1,83 @@
+package com.zyx1011.mobilesafe002.receiver;
+
+import java.util.Random;
+
+import com.zyx1011.mobilesafe002.R;
+import com.zyx1011.mobilesafe002.constants.Constants;
+import com.zyx1011.mobilesafe002.service.GPSService;
+import com.zyx1011.mobilesafe002.utils.PreferenceUtils;
+
+import android.app.admin.DeviceAdminInfo;
+import android.app.admin.DevicePolicyManager;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.media.MediaPlayer;
+import android.telephony.SmsManager;
+import android.telephony.SmsMessage;
+import android.text.TextUtils;
+import android.util.Log;
+
+public class SmsReceiver extends BroadcastReceiver {
+
+	private String mAddress;
+
+	@Override
+	public void onReceive(Context context, Intent intent) {
+		if (PreferenceUtils.getBoolean(context, Constants.PROTECT_PHONE.FLAG)
+				&& !TextUtils.isEmpty(PreferenceUtils.getString(context, Constants.PROTECT_PHONE.SAFE_PHONE))) {
+			DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+			ComponentName who = new ComponentName(context, SafeAdminReceiver.class);
+
+			Object[] objs = (Object[]) intent.getExtras().get("pdus");
+
+			if (objs != null) {
+				for (Object obj : objs) {
+					SmsMessage message = SmsMessage.createFromPdu((byte[]) obj);
+					mAddress = message.getOriginatingAddress();
+					String body = message.getMessageBody();
+
+					if (mAddress.equals(PreferenceUtils.getString(context, Constants.PROTECT_PHONE.SAFE_PHONE))) {
+						if ("#*location*#".equals(body)) {
+							abortBroadcast();
+							Intent location = new Intent(context, GPSService.class);
+							context.startService(location);
+						} else if ("#*lockscreen*#".equals(body)) {
+							Log.d("11", "lockscreen");
+							abortBroadcast();
+							if (dpm.isAdminActive(who)) {
+								Random random = new Random();
+								StringBuilder sb = new StringBuilder();
+								for (int i = 0; i < 6; i++) {
+									sb.append(random.nextInt(10)); // 拼接产生6位0~9的伪随机数新密码
+								}
+								String key = sb.toString();
+								dpm.resetPassword(key, 0); // 设置密码
+
+								// 发送新的锁屏密码给安全手机
+								SmsManager.getDefault().sendTextMessage(mAddress, null,
+										"Screen is locked, and new password is: " + key, null, null);
+							}
+							dpm.lockNow();
+						} else if ("#*wipedata*#".equals(body)) {
+							Log.d("11", "wipedata");
+							abortBroadcast();
+							if (dpm.isAdminActive(who)) {
+								dpm.wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE); // 清除存储卡内容
+								dpm.wipeData(DeviceAdminInfo.USES_POLICY_WIPE_DATA); // 恢复出厂设置
+							}
+						} else if ("#*music*#".equals(body)) {
+							abortBroadcast();
+							MediaPlayer player = MediaPlayer.create(context, R.raw.alarm);
+							player.setVolume(1.0f, 1.0f);
+							player.setLooping(true);
+							player.start();
+						}
+					}
+				}
+			}
+		}
+	}
+
+}

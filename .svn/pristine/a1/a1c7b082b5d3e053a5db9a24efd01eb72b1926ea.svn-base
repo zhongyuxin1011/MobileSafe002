@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <TextView
+        style="@style/pageTitle"
+        android:text="5.设置完成" />
+
+    <CheckBox
+        android:id="@+id/cb_protect_set5_active"
+        style="@style/matchAndWrap"
+        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="15dp"
+        android:text="开启防盗保护"
+        android:textSize="18sp" />
+
+    <RelativeLayout style="@style/matchAndMatch" >
+
+        <ImageView
+            style="@style/wrapAndWrap"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="80dp"
+            android:src="@drawable/step_5" />
+
+        <RelativeLayout
+            style="@style/matchAndWrap"
+            android:layout_alignParentBottom="true"
+            android:layout_marginTop="10dp"
+            android:padding="5dp" >
+
+            <LinearLayout
+                style="@style/wrapAndWrap"
+                android:layout_centerInParent="true" >
+
+                <ImageView
+                    style="@style/wrapAndWrap"
+                    android:src="@drawable/presence_invisible" />
+
+                <ImageView
+                    style="@style/wrapAndWrap"
+                    android:src="@drawable/presence_invisible" />
+
+                <ImageView
+                    style="@style/wrapAndWrap"
+                    android:src="@drawable/presence_invisible" />
+
+                <ImageView
+                    style="@style/wrapAndWrap"
+                    android:src="@drawable/presence_invisible" />
+
+                <ImageView
+                    style="@style/wrapAndWrap"
+                    android:src="@drawable/presence_online" />
+            </LinearLayout>
+
+            <TextView
+                style="@style/protectButton"
+                android:layout_alignParentLeft="true"
+                android:drawableLeft="@drawable/pre"
+                android:onClick="preClick"
+                android:text="上一步" />
+
+            <TextView
+                style="@style/protectButton"
+                android:layout_alignParentRight="true"
+                android:drawableRight="@drawable/next"
+                android:onClick="nextClick"
+                android:text="完    成" />
+        </RelativeLayout>
+    </RelativeLayout>
+
+</LinearLayout>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/matchAndWrap"
+    android:padding="10dp" >
+
+    <TextView
+        android:id="@+id/tv_setting_item_title"
+        style="@style/wrapAndWrap"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="10dp"
+        android:textSize="18sp" />
+
+    <ImageView
+        android:id="@+id/iv_setting_item_switch"
+        style="@style/wrapAndWrap"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="10dp" />
+
+</RelativeLayout>

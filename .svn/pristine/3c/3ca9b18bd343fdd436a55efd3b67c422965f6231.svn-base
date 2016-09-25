@@ -1,0 +1,96 @@
+package com.zyx1011.mobilesafe002;
+
+import com.lidroid.xutils.ViewUtils;
+import com.lidroid.xutils.view.annotation.ContentView;
+import com.lidroid.xutils.view.annotation.ViewInject;
+import com.lidroid.xutils.view.annotation.event.OnClick;
+import com.zyx1011.mobilesafe002.db.AddressDao;
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextUtils;
+import android.text.TextWatcher;
+import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+@ContentView(R.layout.activity_phonearea)
+public class PhoneAreaActivity extends Activity {
+
+	@ViewInject(R.id.et_phonearea_phone)
+	private EditText mEtPhone;
+
+	@ViewInject(R.id.tv_phonearea_check)
+	private TextView mTvCheck;
+
+	@ViewInject(R.id.tv_phonearea_result)
+	private TextView mTvResult;
+
+	private AddressDao mDao;
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		ViewUtils.inject(this);
+
+		mDao = new AddressDao(this);
+
+		doData();
+	}
+
+	/**
+	 * 给EditText设置文本改变监听器
+	 */
+	private void doData() {
+		mEtPhone.addTextChangedListener(new TextWatcher() {
+
+			private String mResult;
+
+			@Override
+			public void onTextChanged(final CharSequence s, int start, int before, int count) {
+				if (s.length() > 0) { // 长度大于0才查询数据库
+					new Thread(new Runnable() { // 子线程访问数据库
+						public void run() {
+							mResult = mDao.getSingelCardType(s.toString());
+
+							runOnUiThread(new Runnable() { // 在主线程更新UI
+								public void run() {
+									if (mResult != null) { // 结果不为null直接设置显示
+										mTvResult.setText(mResult);
+									} else {
+										mTvResult.setText(""); // null则清空显示结果
+									}
+								}
+							});
+						}
+					}).start();
+				} else {
+					mTvResult.setText(""); // 长度为0直接清空显示结果
+				}
+			}
+
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+			}
+
+			@Override
+			public void afterTextChanged(Editable s) {
+			}
+		});
+	}
+
+	@OnClick(R.id.tv_phonearea_check)
+	public void checkClick(View v) {
+		if (TextUtils.isEmpty(mEtPhone.getText().toString().trim())) {
+			Toast.makeText(this, "号码不能为空!", Toast.LENGTH_SHORT).show();
+
+			Animation shake = AnimationUtils.loadAnimation(this, R.anim.shake);
+			mEtPhone.startAnimation(shake);
+		}
+	}
+
+}

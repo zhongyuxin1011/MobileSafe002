@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">黑马手机卫士</string>
+    <string name="action_settings">Settings</string>
+    <string name="main_title">广州02-黑马手机卫士-beta 2.0更新-2016年9月24日更新-zhongyuxin1011</string>
+    <string name="main_name">广州-黑马手机卫士</string>
+    <string name="accessibility_service_description">广州02-黑马手机卫士-为你的手机保驾护航-zhongyuxin1011</string>
+
+</resources>

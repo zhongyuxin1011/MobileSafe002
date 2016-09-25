@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/matchAndMatch"
+    android:orientation="vertical" >
+
+    <FrameLayout style="@style/matchAndWrap" >
+
+        <TextView
+            style="@style/pageTitle"
+            android:text="黑名单管理" />
+
+        <ImageView
+            android:id="@+id/iv_interceptharry_add"
+            style="@style/wrapAndWrap"
+            android:layout_gravity="center_vertical|right"
+            android:layout_marginRight="18dp"
+            android:background="@drawable/iv_interceptharry_add_selector"
+            android:clickable="true" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/line_interceptharry_loading"
+        style="@style/matchAndMatch"
+        android:gravity="center"
+        android:orientation="vertical" >
+
+        <ProgressBar
+            android:id="@+id/pb_interceptharry_pic"
+            style="@style/wrapAndWrap"
+            android:indeterminateDrawable="@drawable/rotate_loading"
+            android:src="@drawable/loading" />
+
+        <TextView
+            android:id="@+id/tv_interceptharry_msg"
+            style="@style/wrapAndWrap"
+            android:text="正在加载中..." />
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/lv_interceptharry_infos"
+        style="@style/matchAndMatch"
+        android:layout_width="match_parent" >
+    </ListView>
+
+</LinearLayout>

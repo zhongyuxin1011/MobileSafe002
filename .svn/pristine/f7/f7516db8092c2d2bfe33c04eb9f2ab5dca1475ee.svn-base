@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ownView="http://schemas.android.com/apk/res/com.zyx1011.mobilesafe002"
+    style="@style/matchAndMatch"
+    android:orientation="vertical" >
+
+    <TextView
+        style="@style/pageTitle"
+        android:text="常用工具" />
+
+    <com.zyx1011.mobilesafe002.view.SettingItemView
+        android:id="@+id/siv_toolsmanager_phonearea"
+        style="@style/matchAndWrap"
+        android:layout_marginTop="15dp"
+        android:onClick="onToolsClick"
+        ownView:sia_background="start"
+        ownView:sia_title="号码归属地查询"
+        ownView:sia_visable="false" />
+
+    <com.zyx1011.mobilesafe002.view.SettingItemView
+        android:id="@+id/siv_toolsmanager_phonenum"
+        style="@style/matchAndWrap"
+        android:onClick="onToolsClick"
+        ownView:sia_background="end"
+        ownView:sia_title="常用号码查询"
+        ownView:sia_visable="false" />
+
+    <com.zyx1011.mobilesafe002.view.SettingItemView
+        android:id="@+id/siv_toolsmanager_smsbackup"
+        style="@style/matchAndWrap"
+        android:layout_marginTop="20dp"
+        android:onClick="onToolsClick"
+        ownView:sia_background="start"
+        ownView:sia_title="短信备份"
+        ownView:sia_visable="false" />
+
+    <com.zyx1011.mobilesafe002.view.SettingItemView
+        android:id="@+id/siv_toolsmanager_smsrestore"
+        style="@style/matchAndWrap"
+        android:onClick="onToolsClick"
+        ownView:sia_background="end"
+        ownView:sia_title="短信还原"
+        ownView:sia_visable="false" />
+
+    <com.zyx1011.mobilesafe002.view.SettingItemView
+        android:id="@+id/siv_toolsmanager_applock"
+        style="@style/matchAndWrap"
+        android:layout_marginTop="20dp"
+        android:onClick="onToolsClick"
+        ownView:sia_background="start"
+        ownView:sia_title="程序锁管理"
+        ownView:sia_visable="false" />
+
+    <com.zyx1011.mobilesafe002.view.SettingItemView
+        android:id="@+id/siv_toolsmanager_watchdog1"
+        style="@style/matchAndWrap"
+        android:onClick="onToolsClick"
+        ownView:sia_background="middle"
+        ownView:sia_title="电子狗服务1"
+        ownView:sia_visable="true" />
+
+    <com.zyx1011.mobilesafe002.view.SettingItemView
+        android:id="@+id/siv_toolsmanager_watchdog2"
+        style="@style/matchAndWrap"
+        android:onClick="onToolsClick"
+        ownView:sia_background="end"
+        ownView:sia_title="电子狗服务2"
+        ownView:sia_visable="true" />
+
+</LinearLayout>

@@ -1,0 +1,53 @@
+package com.zyx1011.mobilesafe002.test;
+
+import java.util.List;
+
+import com.zyx1011.mobilesafe002.db.MDbDao;
+import com.zyx1011.mobilesafe002.entity.ContactInfo;
+import com.zyx1011.mobilesafe002.entity.InterceptInfo;
+import com.zyx1011.mobilesafe002.service.GPSService;
+import com.zyx1011.mobilesafe002.utils.ContactUtils;
+import com.zyx1011.mobilesafe002.utils.ServiceStatusUtils;
+
+import android.test.AndroidTestCase;
+import android.util.Log;
+
+public class Test extends AndroidTestCase {
+
+	public void TestGetAllContacts() {
+		List<ContactInfo> allContact = ContactUtils.getAllContact(getContext());
+		if (allContact != null) {
+			for (ContactInfo contactInfo : allContact) {
+				Log.d("11", contactInfo.toString());
+			}
+		}
+	}
+
+	public void TestServiceStatusUtils() {
+		boolean b = ServiceStatusUtils.isRunningService(getContext(), GPSService.class);
+		Log.d("11", b + "");
+	}
+
+	public void TestFindAll() {
+		MDbDao dao = new MDbDao(getContext());
+		List<InterceptInfo> list = dao.findAll();
+		if (list != null) {
+			for (InterceptInfo interceptInfo : list) {
+				Log.d("11", interceptInfo.toString());
+			}
+		}
+	}
+	
+	public void TestModify() {
+		MDbDao dao = new MDbDao(getContext());
+		boolean b = dao.modify("13512300000", 2);
+		Log.d("11", b + "");
+	}
+	
+	public void TestAdd() {
+		MDbDao dao = new MDbDao(getContext());
+		boolean b = dao.add(null, 1);
+		Log.d("11", b + "");
+	}
+
+}

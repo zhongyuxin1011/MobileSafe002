@@ -1,0 +1,31 @@
+package com.zyx1011.mobilesafe002;
+
+import com.lidroid.xutils.ViewUtils;
+import com.lidroid.xutils.view.annotation.ContentView;
+import com.lidroid.xutils.view.annotation.ViewInject;
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.ListView;
+import android.widget.TextView;
+
+@ContentView(R.layout.activity_applock)
+public class AppLockActivity extends Activity {
+
+	@ViewInject(R.id.tv_applock_item)
+	private TextView mTvItem;
+
+	@ViewInject(R.id.line_applock_loading)
+	private View mLoading;
+
+	@ViewInject(R.id.lv_applock_list)
+	private ListView mLvInfo;
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		ViewUtils.inject(this);
+	}
+
+}

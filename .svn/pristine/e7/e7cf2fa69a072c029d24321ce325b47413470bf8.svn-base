@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/matchAndMatch"
+    android:orientation="vertical" >
+
+    <FrameLayout style="@style/matchAndWrap" >
+
+        <TextView
+            style="@style/pageTitle"
+            android:text="黑名单管理" />
+
+        <ImageView
+            android:id="@+id/iv_interceptharry_add"
+            style="@style/wrapAndWrap"
+            android:layout_gravity="center_vertical|right"
+            android:layout_marginRight="18dp"
+            android:background="@drawable/iv_interceptharry_add_selector"
+            android:clickable="true" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/fl_interceptharry_loading"
+        style="@style/matchAndMatch" >
+
+        <ImageView
+            android:id="@+id/iv_interceptharry_pic"
+            style="@style/wrapAndWrap"
+            android:layout_gravity="center"
+            android:src="@drawable/loading" />
+    </FrameLayout>
+
+    <ListView
+        android:id="@+id/lv_interceptharry_infos"
+        style="@style/matchAndMatch"
+        android:layout_width="match_parent" >
+    </ListView>
+
+</LinearLayout>

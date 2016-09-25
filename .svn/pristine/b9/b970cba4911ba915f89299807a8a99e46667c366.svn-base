@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <TextView
+        style="@style/pageTitle"
+        android:text="进程管理" />
+
+    <com.zyx1011.mobilesafe002.view.ProgressDes
+        android:id="@+id/pd_processmanager_process"
+        style="@style/matchAndWrap"
+        android:layout_marginTop="5dp" />
+
+    <com.zyx1011.mobilesafe002.view.ProgressDes
+        android:id="@+id/pd_processmanager_data"
+        style="@style/matchAndWrap"
+        android:layout_marginTop="2dp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="5dp"
+        android:background="#E7E7E7" >
+    </View>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" >
+
+        <include
+            android:id="@+id/pb_processmanager_loading"
+            layout="@layout/loading" />
+
+        <ListView
+            android:id="@+id/lv_processmanager_info"
+            style="@style/matchAndMatch"
+            android:divider="#E7E7E7"
+            android:dividerHeight="1dp" >
+        </ListView>
+    </FrameLayout>
+
+    <LinearLayout
+        style="@style/matchAndWrap"
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/btn_processmanager_checkall"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="2dp"
+            android:layout_marginRight="2dp"
+            android:layout_marginTop="2dp"
+            android:layout_weight="1"
+            android:background="@drawable/tv_protect_pswbtn_selector"
+            android:padding="5dp"
+            android:text="全选" />
+
+        <Button
+            android:id="@+id/btn_processmanager_reversecheck"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="2dp"
+            android:layout_marginRight="2dp"
+            android:layout_marginTop="2dp"
+            android:layout_weight="1"
+            android:background="@drawable/tv_protect_pswbtn_selector"
+            android:padding="5dp"
+            android:text="反选" />
+    </LinearLayout>
+
+</LinearLayout>

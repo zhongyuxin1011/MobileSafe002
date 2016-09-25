@@ -1,0 +1,99 @@
+package com.zyx1011.mobilesafe002;
+
+import com.lidroid.xutils.ViewUtils;
+import com.lidroid.xutils.view.annotation.ViewInject;
+import com.zyx1011.mobilesafe002.constants.Constants;
+import com.zyx1011.mobilesafe002.utils.PreferenceUtils;
+import com.zyx1011.mobilesafe002.view.SettingItemView;
+
+import android.app.Activity;
+import android.graphics.Color;
+import android.os.Bundle;
+import android.view.View;
+
+public class SettingActivity extends Activity {
+	@ViewInject(R.id.siv_setting_update_version)
+	private SettingItemView mSivUpdate;
+
+	@ViewInject(R.id.siv_setting_intercept)
+	private SettingItemView mSivIntercept;
+
+	@ViewInject(R.id.siv_setting_phone_area)
+	private SettingItemView mSivPhoneArea;
+
+	@ViewInject(R.id.siv_setting_show_style)
+	private SettingItemView mSivShowStyle;
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_setting);
+		ViewUtils.inject(this);
+
+		initData();
+	}
+
+	public void onSettingClick(View v) {
+		switch (v.getId()) {
+		case R.id.siv_setting_update_version:
+			switchMethod(Constants.MAIN_MENU.VERSION_UPDATE);
+			mSivUpdate.check(PreferenceUtils.getBoolean(this, Constants.MAIN_MENU.VERSION_UPDATE)); // 更新UI显示
+			break;
+
+		case R.id.siv_setting_intercept:
+			switchMethod(Constants.MAIN_MENU.INTERCEPT_HARRY);
+			mSivIntercept.check(PreferenceUtils.getBoolean(this, Constants.MAIN_MENU.INTERCEPT_HARRY));
+			break;
+
+		case R.id.siv_setting_phone_area:
+			switchMethod(Constants.MAIN_MENU.PHONE_AREA);
+			mSivPhoneArea.check(PreferenceUtils.getBoolean(this, Constants.MAIN_MENU.PHONE_AREA));
+
+			showState(); // 更新显示风格状态
+			break;
+
+		case R.id.siv_setting_show_style:
+			// 归属地显示风格
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	/**
+	 * 归属地显示设置的可否点击状态
+	 */
+	private void showState() {
+		if (PreferenceUtils.getBoolean(this, Constants.MAIN_MENU.PHONE_AREA)) {
+			mSivShowStyle.setClickable(true);
+			mSivShowStyle.setTitleColor(Color.rgb(50, 50, 50));
+		} else {
+			mSivShowStyle.setClickable(false);
+			mSivShowStyle.setTitleColor(Color.GRAY);
+		}
+	}
+
+	/**
+	 * 功能开关状态切换
+	 */
+	private void switchMethod(String key) {
+		if (PreferenceUtils.getBoolean(this, key)) {
+			PreferenceUtils.putBoolean(this, key, false);
+		} else {
+			PreferenceUtils.putBoolean(this, key, true);
+		}
+	}
+
+	/**
+	 * 初始化数据
+	 */
+	private void initData() {
+		mSivUpdate.check(PreferenceUtils.getBoolean(getApplicationContext(), Constants.MAIN_MENU.VERSION_UPDATE));
+		mSivIntercept.check(PreferenceUtils.getBoolean(getApplicationContext(), Constants.MAIN_MENU.INTERCEPT_HARRY));
+		mSivPhoneArea.check(PreferenceUtils.getBoolean(getApplicationContext(), Constants.MAIN_MENU.PHONE_AREA));
+
+		showState();
+	}
+
+}

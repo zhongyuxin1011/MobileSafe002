@@ -1,0 +1,152 @@
+package com.zyx1011.mobilesafe002;
+
+import java.util.List;
+
+import com.lidroid.xutils.ViewUtils;
+import com.lidroid.xutils.view.annotation.ContentView;
+import com.lidroid.xutils.view.annotation.ViewInject;
+import com.lidroid.xutils.view.annotation.event.OnClick;
+import com.zyx1011.mobilesafe002.entity.InterceptInfo;
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.BaseAdapter;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.TextView;
+
+@ContentView(R.layout.activity_interceptharry)
+public class InterceptHarry extends Activity {
+
+	@ViewInject(R.id.iv_interceptharry_pic)
+	private ImageView mIvPic;
+
+	@ViewInject(R.id.fl_interceptharry_loading)
+	private FrameLayout mFlLoading;
+
+	@ViewInject(R.id.lv_interceptharry_infos)
+	private ListView mLvInfos;
+
+	private List<InterceptInfo> infos;
+
+	/**
+	 * ListView适配器
+	 * 
+	 * @author zhongyuxin
+	 */
+	private class phoneAdapter extends BaseAdapter {
+
+		@Override
+		public int getCount() {
+			return infos.size();
+		}
+
+		@Override
+		public Object getItem(int position) {
+			return infos.get(position);
+		}
+
+		@Override
+		public long getItemId(int position) {
+			return position;
+		}
+
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent) {
+			ViewHolder holder = null;
+			if (convertView == null) {
+				holder = new ViewHolder();
+				convertView = View.inflate(InterceptHarry.this, R.layout.listview_intercept_item, null);
+
+				convertView.setTag(holder);
+
+				holder.tvPhone = (TextView) convertView.findViewById(R.id.tv_intercept_item_phone);
+				holder.tvType = (TextView) convertView.findViewById(R.id.tv_intercept_item_type);
+			} else {
+				holder = (ViewHolder) convertView.getTag();
+			}
+
+			holder.tvPhone.setText(infos.get(position).getPhone());
+			holder.tvType.setText(interceptType(position));
+
+			return convertView;
+		}
+	}
+
+	/**
+	 * 判断拦截类型
+	 * 
+	 * @param position
+	 * @return
+	 */
+	private String interceptType(int position) {
+		String tag = "";
+		switch (infos.get(position).getType()) {
+		case 0:
+			tag = "电话拦截";
+			break;
+
+		case 1:
+			tag = "短信拦截";
+			break;
+
+		case 2:
+			tag = "电话+短信拦截";
+			break;
+
+		default:
+			break;
+		}
+		return tag;
+	}
+
+	/**
+	 * ListView优化
+	 * 
+	 * @author zhongyuxin
+	 */
+	private class ViewHolder {
+		private TextView tvPhone;
+		private TextView tvType;
+	}
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		ViewUtils.inject(this);
+
+		initAnim();
+		intitData();
+	}
+
+	/**
+	 * 初始化数据
+	 */
+	private void intitData() {
+		if (infos != null) {
+			mLvInfos.setAdapter(new phoneAdapter());
+		}
+	}
+
+	/**
+	 * 初始化动画
+	 */
+	private void initAnim() {
+		Animation animation = AnimationUtils.loadAnimation(this, R.anim.rotate_loading);
+		mIvPic.setAnimation(animation);
+	}
+
+	@OnClick(R.id.iv_interceptharry_add)
+	public void addClick(View v) {
+		// 测试
+		// mFlLoading.setVisibility(View.GONE);
+		mIvPic.clearAnimation(); // 清除动画效果
+		mIvPic.setImageResource(R.drawable.empty);
+	}
+
+}

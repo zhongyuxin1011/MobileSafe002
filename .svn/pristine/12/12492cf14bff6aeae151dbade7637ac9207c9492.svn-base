@@ -1,0 +1,152 @@
+package com.zyx1011.mobilesafe002;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import com.lidroid.xutils.ViewUtils;
+import com.lidroid.xutils.view.annotation.ContentView;
+import com.lidroid.xutils.view.annotation.ViewInject;
+import com.zyx1011.mobilesafe002.entity.FlowInfo;
+
+import android.app.Activity;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.net.TrafficStats;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.text.format.Formatter;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.TextView;
+
+@ContentView(R.layout.activity_flowcount)
+public class FlowCountActivity extends Activity {
+
+	@ViewInject(R.id.line_flowcount_load)
+	private View mLoad;
+
+	@ViewInject(R.id.lv_flowcount_info)
+	private ListView mLvinfo;
+
+	private PackageManager mPm;
+	private List<FlowInfo> mInfos;
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		ViewUtils.inject(this);
+
+		mPm = getPackageManager();
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		initData();
+	}
+
+	private void initData() {
+		new AsyncTask<Void, Void, Void>() {
+
+			@Override
+			protected void onPreExecute() {
+				super.onPreExecute();
+				mLoad.setVisibility(View.VISIBLE);
+				mLvinfo.setVisibility(View.GONE);
+			}
+
+			@Override
+			protected Void doInBackground(Void... params) {
+				List<PackageInfo> packages = mPm.getInstalledPackages(0);
+				if (packages != null) {
+					mInfos = new ArrayList<>();
+
+					for (PackageInfo packageInfo : packages) {
+						FlowInfo info = new FlowInfo();
+						info.uid = packageInfo.applicationInfo.uid;
+						info.packageName = packageInfo.packageName;
+						info.name = packageInfo.applicationInfo.loadLabel(mPm).toString();
+						info.icon = packageInfo.applicationInfo.loadIcon(mPm);
+
+						info.rcv = TrafficStats.getUidRxBytes(info.uid);
+						info.snd = TrafficStats.getUidTxBytes(info.uid);
+
+						if (!(info.rcv == TrafficStats.UNSUPPORTED && info.snd == TrafficStats.UNSUPPORTED)) { // 无数据流量的不统计
+							if (!(info.rcv == 0 && info.snd == 0)) { // 不支持与0不添加
+								mInfos.add(info);
+							}
+						}
+					}
+					Collections.sort(mInfos); // 对集合进行排序
+				}
+				return null;
+			}
+
+			@Override
+			protected void onPostExecute(Void result) {
+				super.onPostExecute(result);
+				mLvinfo.setAdapter(new FlowAdapter());
+
+				mLoad.setVisibility(View.GONE);
+				mLvinfo.setVisibility(View.VISIBLE);
+			}
+		}.execute();
+	}
+
+	private class FlowAdapter extends BaseAdapter {
+
+		@Override
+		public int getCount() {
+			return mInfos.size();
+		}
+
+		@Override
+		public Object getItem(int position) {
+			return mInfos.get(position);
+		}
+
+		@Override
+		public long getItemId(int position) {
+			return position;
+		}
+
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent) {
+			ViewHolder holder = null;
+			FlowInfo info = mInfos.get(position);
+
+			if (convertView == null) {
+				holder = new ViewHolder();
+
+				convertView = View.inflate(getApplicationContext(), R.layout.listview_flowcount_info_item, null);
+				holder.ivIcon = (ImageView) convertView.findViewById(R.id.listview_flowcount_item_icon);
+				holder.tvName = (TextView) convertView.findViewById(R.id.listview_flowcount_item_name);
+				holder.tvRcv = (TextView) convertView.findViewById(R.id.listview_flowcout_item_recevice);
+				holder.tvSnd = (TextView) convertView.findViewById(R.id.listview_flowcout_item_send);
+
+				convertView.setTag(holder);
+			} else {
+				holder = (ViewHolder) convertView.getTag();
+			}
+
+			holder.ivIcon.setImageDrawable(info.icon);
+			holder.tvName.setText(info.name);
+			holder.tvRcv.setText("接收:" + Formatter.formatFileSize(getApplicationContext(), info.rcv));
+			holder.tvSnd.setText("发送:" + Formatter.formatFileSize(getApplicationContext(), info.snd));
+
+			return convertView;
+		}
+	}
+
+	private class ViewHolder {
+		ImageView ivIcon;
+		TextView tvName;
+		TextView tvRcv;
+		TextView tvSnd;
+	}
+
+}

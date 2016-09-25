@@ -1,0 +1,165 @@
+package com.zyx1011.mobilesafe002;
+
+import com.lidroid.xutils.ViewUtils;
+import com.lidroid.xutils.view.annotation.ContentView;
+import com.lidroid.xutils.view.annotation.ViewInject;
+import com.zyx1011.mobilesafe002.db.CommonNumDao;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.graphics.Color;
+import android.net.Uri;
+import android.os.Bundle;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseExpandableListAdapter;
+import android.widget.ExpandableListView;
+import android.widget.ExpandableListView.OnChildClickListener;
+import android.widget.ExpandableListView.OnGroupClickListener;
+import android.widget.TextView;
+
+@ContentView(R.layout.activity_publucphone)
+public class PublicPhoneActivity extends Activity {
+
+	@ViewInject(R.id.ev_publicphone_list)
+	private ExpandableListView mEvNumList;
+
+	private PublicNumAdapter mAdapter;
+	private CommonNumDao mDao;
+	private int currentPosition = -1;
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		ViewUtils.inject(this);
+
+		mDao = new CommonNumDao(this);
+		mAdapter = new PublicNumAdapter();
+		mEvNumList.setAdapter(mAdapter);
+
+		initEvent();
+	}
+
+	private void initEvent() {
+		mEvNumList.setOnChildClickListener(new OnChildClickListener() {
+
+			@Override
+			public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition,
+					long id) {
+				Intent intent = new Intent(); // 隐式意图启动拨号界面
+				intent.setAction(Intent.ACTION_DIAL);
+				String[] text = mDao.getChildText(groupPosition, childPosition);
+				intent.setData(Uri.parse("tel:" + text[0]));
+				startActivity(intent);
+				return false;
+			}
+		});
+
+		mEvNumList.setOnGroupClickListener(new OnGroupClickListener() {
+
+			@Override
+			public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
+				if (currentPosition == -1) { // 当前组=初始值
+					mEvNumList.expandGroup(groupPosition); // 展开当前组
+					currentPosition = groupPosition; // 更新记录值
+					mEvNumList.setSelectedGroup(groupPosition); // 置顶当前组
+				} else {
+					if (currentPosition == groupPosition) { // 当前值=记录值
+						mEvNumList.collapseGroup(groupPosition); // 收起当前组
+						currentPosition = -1; // 重置记录值
+					} else { // 当前组≠记录值
+						mEvNumList.expandGroup(groupPosition); // 展开当前组
+						mEvNumList.collapseGroup(currentPosition); // 收起前面的组
+						currentPosition = groupPosition; // 更新记录值
+						mEvNumList.setSelectedGroup(groupPosition); // 置顶当前组
+					}
+				}
+				return true;
+			}
+		});
+	}
+
+	private class PublicNumAdapter extends BaseExpandableListAdapter {
+
+		@Override
+		public int getGroupCount() {
+			return mDao.getGroupCount();
+		}
+
+		@Override
+		public int getChildrenCount(int groupPosition) {
+			return mDao.getChildrenCount(groupPosition);
+		}
+
+		@Override
+		public Object getGroup(int groupPosition) {
+			return null;
+		}
+
+		@Override
+		public Object getChild(int groupPosition, int childPosition) {
+			return null;
+		}
+
+		@Override
+		public long getGroupId(int groupPosition) {
+			return 0;
+		}
+
+		@Override
+		public long getChildId(int groupPosition, int childPosition) {
+			return 0;
+		}
+
+		@Override
+		public boolean hasStableIds() {
+			return false;
+		}
+
+		@Override
+		public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
+			if (convertView == null) {
+				convertView = new TextView(getApplicationContext());
+			}
+			TextView tv = (TextView) convertView;
+
+			if (groupPosition % 2 == 0) {
+				tv.setBackgroundColor(Color.parseColor("#EEEE00"));
+			} else {
+				tv.setBackgroundColor(Color.parseColor("#CAFF70"));
+			}
+			tv.setTextSize(18);
+			tv.setPadding(60, 15, 0, 15);
+			tv.setTextColor(Color.WHITE);
+			tv.setText(mDao.getGroupText(groupPosition));
+
+			return convertView;
+		}
+
+		@Override
+		public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView,
+				ViewGroup parent) {
+			if (convertView == null) {
+				convertView = new TextView(getApplicationContext());
+			}
+			TextView tv = (TextView) convertView;
+
+			tv.setTextSize(15);
+			tv.setBackgroundColor(Color.parseColor("#C6E2FF"));
+			tv.setPadding(80, 10, 0, 10);
+			tv.setTextColor(Color.BLACK);
+
+			String[] texts = mDao.getChildText(groupPosition, childPosition);
+			tv.setText(texts[0] + "\n" + texts[1]);
+
+			return convertView;
+		}
+
+		@Override
+		public boolean isChildSelectable(int groupPosition, int childPosition) {
+			return true;
+		}
+
+	}
+
+}

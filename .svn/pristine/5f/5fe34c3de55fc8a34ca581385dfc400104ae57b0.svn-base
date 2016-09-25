@@ -1,0 +1,101 @@
+package com.zyx1011.mobilesafe002;
+
+import com.lidroid.xutils.ViewUtils;
+import com.lidroid.xutils.view.annotation.ContentView;
+import com.lidroid.xutils.view.annotation.ViewInject;
+import com.lidroid.xutils.view.annotation.event.OnClick;
+import com.zyx1011.mobilesafe002.db.AddressDao;
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextUtils;
+import android.text.TextWatcher;
+import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+@ContentView(R.layout.activity_phonearea)
+public class PhoneAreaActivity extends Activity {
+
+	@ViewInject(R.id.et_phonearea_phone)
+	private EditText mEtPhone;
+
+	@ViewInject(R.id.tv_phonearea_check)
+	private TextView mTvCheck;
+
+	@ViewInject(R.id.tv_phonearea_result)
+	private TextView mTvResult;
+
+	private AddressDao mDao;
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		ViewUtils.inject(this);
+
+		mDao = new AddressDao(this);
+
+		doData();
+	}
+
+	/**
+	 * 给EditText设置文本改变监听器
+	 */
+	private void doData() {
+		mEtPhone.addTextChangedListener(new TextWatcher() {
+
+			private String mMobilprefix;
+
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before, int count) {
+				if (s.length() >= 7) {
+					mMobilprefix = s.toString();
+					// 主线程访问数据库
+					new Thread(new Runnable() {
+						public void run() {
+							final String cardType = mDao.getSingelCardType(mMobilprefix.substring(0, 7));
+
+							runOnUiThread(new Runnable() { // 在主线程更新UI
+								public void run() {
+									mTvResult.setText(cardType);
+								}
+							});
+						}
+					}).start();
+
+				} else if (s.length() == 5 && s.toString().startsWith("1")) {
+					mTvResult.setText("服务电话"); // 清空显示结果
+				} else if (s.length() == 4 && s.toString().startsWith("55")) {
+					mTvResult.setText("模拟机"); // 清空显示结果
+				} else if (s.length() == 3 && s.toString().startsWith("1")) {
+					mTvResult.setText("紧急电话"); // 清空显示结果
+				} else {
+					mTvResult.setText(""); // 清空显示结果
+				}
+			}
+
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+			}
+
+			@Override
+			public void afterTextChanged(Editable s) {
+			}
+		});
+	}
+
+	@OnClick(R.id.tv_phonearea_check)
+	public void checkClick(View v) {
+		if (TextUtils.isEmpty(mEtPhone.getText().toString().trim())) {
+			Toast.makeText(this, "号码不能为空!", Toast.LENGTH_SHORT).show();
+
+			Animation shake = AnimationUtils.loadAnimation(this, R.anim.shake);
+			mEtPhone.startAnimation(shake);
+		}
+	}
+
+}

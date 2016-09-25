@@ -1,0 +1,157 @@
+package com.zyx1011.mobilesafe002.service;
+
+import java.lang.reflect.Method;
+
+import com.android.internal.telephony.ITelephony;
+import com.zyx1011.mobilesafe002.db.MDbDao;
+
+import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.database.ContentObserver;
+import android.media.AudioManager;
+import android.os.Handler;
+import android.os.IBinder;
+import android.provider.CallLog;
+import android.telephony.PhoneStateListener;
+import android.telephony.SmsMessage;
+import android.telephony.TelephonyManager;
+
+public class InterceptService extends Service {
+
+	private MessageReceiver mReceiver;
+	private MDbDao mDao;
+	private CallListener mListener;
+	private TelephonyManager mTm;
+
+	@Override
+	public IBinder onBind(Intent intent) {
+		return null;
+	}
+
+	@Override
+	public void onCreate() {
+		super.onCreate();
+		mDao = new MDbDao(this);
+
+		mReceiver = new MessageReceiver();
+		IntentFilter filter = new IntentFilter();
+		filter.addAction("android.provider.Telephony.SMS_RECEIVED");
+		filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
+		registerReceiver(mReceiver, filter); // 动态注册广播
+
+		mTm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+		mListener = new CallListener();
+		mTm.listen(mListener, PhoneStateListener.LISTEN_CALL_STATE);
+	}
+
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		if (mReceiver != null) {
+			unregisterReceiver(mReceiver);
+			mReceiver = null;
+		}
+
+		if (mTm != null) {
+			mTm.listen(mListener, PhoneStateListener.LISTEN_NONE);
+			mListener = null;
+			mTm = null;
+		}
+	}
+
+	/**
+	 * 骚扰拦截之短信拦截
+	 * 
+	 * @author zhongyuxin
+	 */
+	private class MessageReceiver extends BroadcastReceiver {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+
+			Object[] objs = (Object[]) intent.getExtras().get("pdus");
+			if (objs != null) {
+				for (Object obj : objs) {
+					SmsMessage message = SmsMessage.createFromPdu((byte[]) obj);
+					String address = message.getOriginatingAddress();
+
+					if (mDao.isExists(address)) {
+						int type = mDao.findTypeByPhone(address);
+						if (type == 1 || type == 2) {
+							abortBroadcast();
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * 骚扰拦截之来电拦截
+	 * 
+	 * @author zhongyuxin
+	 */
+	private class CallListener extends PhoneStateListener {
+
+		private ContentResolver mResolver;
+		private AudioManager mAm;
+		private int mRingerMode;
+
+		@Override
+		public void onCallStateChanged(int state, final String incomingNumber) {
+			super.onCallStateChanged(state, incomingNumber);
+			switch (state) {
+			case TelephonyManager.CALL_STATE_IDLE:
+				break;
+
+			case TelephonyManager.CALL_STATE_RINGING:
+				if (mDao.isExists(incomingNumber)) {
+					int type = mDao.findTypeByPhone(incomingNumber);
+					if (type == 0 || type == 2) {
+						mAm = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+						mRingerMode = mAm.getRingerMode(); // 保存原来的铃音模式
+						mAm.setRingerMode(AudioManager.RINGER_MODE_SILENT); // 让铃声无声
+
+						try { // 通过反射获取系统隐藏的方法
+							Class<?> clazz = Class.forName("android.os.ServiceManager");
+							Method method = clazz.getDeclaredMethod("getService", String.class);
+							IBinder binder = (IBinder) method.invoke(null, Context.TELEPHONY_SERVICE);
+							ITelephony telephony = ITelephony.Stub.asInterface(binder);
+							telephony.endCall(); // 挂断电话
+
+							// 删除通话记录
+							mResolver = getContentResolver(); // 获取内容解析者
+							// 注册内容观测者
+							mResolver.registerContentObserver(CallLog.Calls.CONTENT_URI, true,
+									new ContentObserver(new Handler()) {
+										@Override
+										public void onChange(boolean selfChange) {
+											super.onChange(selfChange);
+											mResolver.unregisterContentObserver(this);
+											mResolver.delete(CallLog.Calls.CONTENT_URI, "number=?",
+													new String[] { incomingNumber });
+											mAm.setRingerMode(mRingerMode); // 恢复铃声模式
+										}
+									});
+
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				}
+				break;
+
+			case TelephonyManager.CALL_STATE_OFFHOOK:
+				break;
+
+			default:
+				break;
+			}
+		}
+	}
+	
+}

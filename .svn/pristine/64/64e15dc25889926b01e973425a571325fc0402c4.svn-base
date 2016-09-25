@@ -1,0 +1,202 @@
+package com.zyx1011.mobilesafe002;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
+import com.google.gson.Gson;
+import com.lidroid.xutils.ViewUtils;
+import com.lidroid.xutils.view.annotation.ContentView;
+import com.lidroid.xutils.view.annotation.ViewInject;
+import com.lidroid.xutils.view.annotation.event.OnClick;
+import com.zyx1011.mobilesafe002.db.AddressDao;
+import com.zyx1011.mobilesafe002.entity.NetAddressInfo;
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.text.Editable;
+import android.text.TextUtils;
+import android.text.TextWatcher;
+import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+@ContentView(R.layout.activity_phonearea)
+public class PhoneAreaActivity extends Activity {
+
+	@ViewInject(R.id.et_phonearea_phone)
+	private EditText mEtPhone;
+
+	@ViewInject(R.id.tv_phonearea_check)
+	private TextView mTvCheck;
+
+	@ViewInject(R.id.tv_phonearea_result)
+	private TextView mTvResult;
+
+	private AddressDao mDao;
+	private String mHttpArg;
+
+	private Handler handler = new Handler() {
+		public void handleMessage(Message msg) {
+			// 提示网络异常
+			Toast.makeText(PhoneAreaActivity.this, "联网异常,请检查网络连接!", Toast.LENGTH_SHORT).show();
+		};
+	};
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		ViewUtils.inject(this);
+
+		mDao = new AddressDao(this);
+
+		doData();
+	}
+
+	/**
+	 * 给EditText设置文本改变监听器
+	 */
+	private void doData() {
+		mEtPhone.addTextChangedListener(new TextWatcher() {
+
+			private String mResult;
+
+			@Override
+			public void onTextChanged(final CharSequence s, int start, int before, int count) {
+				if (s.length() > 0) { // 长度大于0才查询数据库
+					new Thread(new Runnable() { // 子线程访问数据库
+						public void run() {
+							mResult = mDao.getSingelCardType(s.toString());
+
+							runOnUiThread(new Runnable() { // 在主线程更新UI
+								public void run() {
+									if (mResult != null) { // 结果不为null设置显示
+										mTvResult.setText(mResult);
+									}
+								}
+							});
+						}
+					}).start();
+				} else {
+					mTvResult.setText(""); // 长度为0直接清空显示结果
+				}
+			}
+
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+			}
+
+			@Override
+			public void afterTextChanged(Editable s) {
+			}
+		});
+	}
+
+	@OnClick(R.id.tv_phonearea_check)
+	public void checkClick(View v) {
+		String num = mEtPhone.getText().toString().trim();
+		if (TextUtils.isEmpty(num)) {
+			Toast.makeText(this, "号码不能为空!", Toast.LENGTH_SHORT).show();
+
+			editAnim();
+		} else if (num.length() < 11) {
+			Toast.makeText(this, "请输入11位的手机号码!", Toast.LENGTH_SHORT).show();
+
+			editAnim();
+		} else {
+			mTvResult.setText(""); // 先清空本地查询的结果
+
+			final String httpUrl = "http://apis.baidu.com/showapi_open_bus/mobile/find";
+			mHttpArg = "num=" + num;
+			new Thread(new Runnable() {
+				private String mJsonResult;
+
+				public void run() {
+					try {
+						mJsonResult = request(httpUrl, mHttpArg);
+
+						runOnUiThread(new Runnable() {
+							public void run() {
+								Gson gson = new Gson();
+								NetAddressInfo info = gson.fromJson(mJsonResult, NetAddressInfo.class);
+
+								String result = "查无结果";
+								String name = info.showapi_res_body.name;
+								if (!TextUtils.isEmpty(name)) { // 如果name的查询结果为null,直接返回"查无结果"
+									result = info.showapi_res_body.prov + info.showapi_res_body.city + "\n" + name;
+								}
+
+								mTvResult.setText(result);
+							}
+						});
+
+					} catch (Exception e) {
+						e.printStackTrace();
+						handler.sendMessage(new Message()); // 通知发生网络异常
+					}
+				}
+			}).start();
+		}
+	}
+
+	/**
+	 * 归属地查询输入框错误动画效果
+	 */
+	private void editAnim() {
+		Animation shake = AnimationUtils.loadAnimation(this, R.anim.shake);
+		mEtPhone.startAnimation(shake);
+	}
+
+	/**
+	 * @param urlAll
+	 *            :请求接口
+	 * @param httpArg
+	 *            :参数
+	 * @return 返回结果
+	 * @throws Exception
+	 */
+	public static String request(String httpUrl, String httpArg) throws Exception {
+		BufferedReader reader = null;
+		String result = null;
+		StringBuffer sbf = new StringBuffer();
+
+		httpUrl = httpUrl + "?" + httpArg;
+
+		try {
+			URL url = new URL(httpUrl);
+			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+			connection.setRequestMethod("GET");
+			connection.setConnectTimeout(800); // 联网超时
+			connection.setReadTimeout(800);
+
+			// 填入apikey到HTTP header
+			connection.setRequestProperty("apikey", "a7a3ca30f47ce7cd410a0ebb9224803b");
+			connection.connect();
+
+			InputStream is = connection.getInputStream();
+			reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+
+			String strRead = null;
+			while ((strRead = reader.readLine()) != null) {
+				sbf.append(strRead);
+				sbf.append("\r\n");
+			}
+			reader.close();
+
+			result = sbf.toString();
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+		return result;
+	}
+
+}
