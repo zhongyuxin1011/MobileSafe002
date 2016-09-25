@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ownView="http://schemas.android.com/apk/res/com.zyx1011.mobilesafe002"
+    style="@style/matchAndMatch"
+    android:orientation="vertical" >
+
+    <TextView
+        style="@style/pageTitle"
+        android:text="设置中心" />
+
+    <com.zyx1011.mobilesafe002.view.SettingItemView
+        android:id="@+id/siv_setting_update_version"
+        style="@style/matchAndWrap"
+        android:layout_marginTop="15dp"
+        android:onClick="onSettingClick"
+        ownView:sia_background="start"
+        ownView:sia_title="版本更新"
+        ownView:sia_visable="true" />
+
+    <com.zyx1011.mobilesafe002.view.SettingItemView
+        android:id="@+id/siv_setting_intercept"
+        style="@style/matchAndWrap"
+        android:onClick="onSettingClick"
+        ownView:sia_background="middle"
+        ownView:sia_title="骚扰拦截设置"
+        ownView:sia_visable="true" />
+
+    <com.zyx1011.mobilesafe002.view.SettingItemView
+        android:id="@+id/siv_setting_protect"
+        style="@style/matchAndWrap"
+        android:onClick="onSettingClick"
+        ownView:sia_background="end"
+        ownView:sia_title="常驻状态栏"
+        ownView:sia_visable="true" />
+
+    <com.zyx1011.mobilesafe002.view.SettingItemView
+        android:id="@+id/siv_setting_phone_area"
+        style="@style/matchAndWrap"
+        android:layout_marginTop="20dp"
+        android:onClick="onSettingClick"
+        ownView:sia_background="start"
+        ownView:sia_title="归属地显示设置"
+        ownView:sia_visable="true" />
+
+    <com.zyx1011.mobilesafe002.view.SettingItemView
+        android:id="@+id/siv_setting_show_style"
+        style="@style/matchAndWrap"
+        android:onClick="onSettingClick"
+        ownView:sia_background="middle"
+        ownView:sia_title="归属地风格设置"
+        ownView:sia_visable="false" />
+
+    <com.zyx1011.mobilesafe002.view.SettingItemView
+        android:id="@+id/siv_setting_reset"
+        style="@style/matchAndWrap"
+        android:onClick="onSettingClick"
+        ownView:sia_background="end"
+        ownView:sia_title="设置/重置密码"
+        ownView:sia_visable="false" />
+
+</LinearLayout>

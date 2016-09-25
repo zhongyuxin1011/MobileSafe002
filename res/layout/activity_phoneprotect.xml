@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <TextView
+        style="@style/pageTitle"
+        android:text="手机防盗" />
+
+    <LinearLayout
+        style="@style/matchAndWrap"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:orientation="horizontal"
+        android:padding="10dp" >
+
+        <TextView
+            style="@style/wrapAndWrap"
+            android:text="安全号码"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/tv_phoneprotect_safenum"
+            style="@style/matchAndWrap"
+            android:gravity="right"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+    <include layout="@layout/view_line" />
+
+    <TextView
+        android:id="@+id/tv_phoneprotect_switch"
+        style="@style/matchAndWrap"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:background="@drawable/tv_phoneprotect_state_selector"
+        android:clickable="true"
+        android:drawablePadding="10dp"
+        android:padding="10dp"
+        android:text="防盗保护开启/关闭"
+        android:textSize="18sp" />
+
+    <include layout="@layout/view_line" />
+
+    <TextView
+        android:id="@+id/tv_phoneprotect_reset"
+        style="@style/matchAndWrap"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:background="@drawable/tv_phoneprotect_state_selector"
+        android:clickable="true"
+        android:padding="10dp"
+        android:text="重新进入设置向导"
+        android:textSize="18sp" />
+
+    <TextView
+        style="@style/matchAndWrap"
+        android:background="#838383"
+        android:gravity="center_vertical"
+        android:padding="15dp"
+        android:text="功能介绍"
+        android:textColor="@android:color/white"
+        android:textSize="15sp" />
+
+    <TextView
+        style="@style/protectText"
+        android:layout_marginTop="15dp"
+        android:text="GPS追踪: #*location*#" />
+
+    <TextView
+        style="@style/protectText"
+        android:text="远程锁屏: #*lockscreen*#" />
+
+    <TextView
+        style="@style/protectText"
+        android:text="播放报警音乐: #*music*#" />
+
+    <TextView
+        style="@style/protectText"
+        android:text="远程销毁数据: #*wipedata*#" />
+</LinearLayout>

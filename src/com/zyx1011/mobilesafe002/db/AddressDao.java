@@ -1,0 +1,139 @@
+package com.zyx1011.mobilesafe002.db;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.zyx1011.mobilesafe002.entity.AddressInfo;
+
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+
+public class AddressDao {
+
+	private String mPath;
+	private String mSql;
+	private Cursor mCursor;
+
+	public AddressDao(Context context) {
+		mPath = context.getFilesDir().getAbsolutePath() + "/address.db";
+	}
+
+	/**
+	 * 查询全部信息
+	 * 
+	 * @return List集合
+	 */
+	public List<AddressInfo> getAllAddress() {
+		List<AddressInfo> infos = new ArrayList<>();
+
+		SQLiteDatabase db = SQLiteDatabase.openDatabase(mPath, null, SQLiteDatabase.OPEN_READONLY);
+		Cursor cursor = db.query("info", null, null, null, null, null, "_id asc");
+		if (cursor != null) {
+			while (cursor.moveToNext()) {
+				infos.add(new AddressInfo(cursor.getInt(0), cursor.getString(1), cursor.getString(2),
+						cursor.getString(3), cursor.getString(4)));
+			}
+			cursor.close();
+		}
+		db.close();
+		return infos;
+	}
+
+	/**
+	 * 查询部分信息
+	 * 
+	 * @param offset
+	 *            偏移量
+	 * @param count
+	 *            总数
+	 * @return List集合
+	 */
+	public List<AddressInfo> getPartAddress(int offset, int count) {
+		List<AddressInfo> infos = new ArrayList<>();
+
+		SQLiteDatabase db = SQLiteDatabase.openDatabase(mPath, null, SQLiteDatabase.OPEN_READONLY);
+		String sql = "select _id,mobileprefix,area,city,cardtype from info limit ?,?";
+		Cursor cursor = db.rawQuery(sql, new String[] { String.valueOf(offset), String.valueOf(count) });
+		if (cursor != null) {
+			while (cursor.moveToNext()) {
+				infos.add(new AddressInfo(cursor.getInt(0), cursor.getString(1), cursor.getString(2),
+						cursor.getString(3), cursor.getString(4)));
+			}
+			cursor.close();
+		}
+		db.close();
+		return infos;
+	}
+
+	/**
+	 * 查询指定号码的一条记录
+	 * 
+	 * @param mobileprefix
+	 *            电话号码
+	 * @return 归属地
+	 */
+	public String getSingelCardType(String mobileprefix) {
+		String result = null;
+
+		if (mobileprefix.length() >= 7) {
+			String num = mobileprefix.substring(0, 7);
+
+			SQLiteDatabase db = SQLiteDatabase.openDatabase(mPath, null, SQLiteDatabase.OPEN_READONLY);
+			Cursor cursor = db.query("info", new String[] { "city", "cardtype" }, "mobileprefix=?",
+					new String[] { num }, null, null, null);
+			if (cursor != null) {
+				if (cursor.moveToNext()) {
+					result = cursor.getString(0) + "\n" + cursor.getString(1);
+				}else {
+					result = "无数据";
+				}
+				cursor.close();
+			}
+			db.close();
+		} else if (mobileprefix.length() == 5 && mobileprefix.toString().startsWith("1")) {
+			result = "服务电话";
+		} else if (mobileprefix.length() == 4 && mobileprefix.toString().startsWith("55")) {
+			result = "模拟机";
+		} else if (mobileprefix.length() == 3 && mobileprefix.toString().startsWith("1")) {
+			result = "紧急电话";
+		} else {
+			result = "无数据";
+		}
+
+		return result;
+	}
+
+	/**
+	 * 查询指定范围的多条记录
+	 * 
+	 * @param mobileprefix
+	 *            电话号码
+	 * @return 归属地
+	 */
+	public List<AddressInfo> getMultilCardType(String mobileprefix, int offset, int count) {
+		List<AddressInfo> infos = new ArrayList<>();
+
+		SQLiteDatabase db = SQLiteDatabase.openDatabase(mPath, null, SQLiteDatabase.OPEN_READONLY);
+		if (mobileprefix.length() >= 7) { // 传入的号码长度大于等于,截取前七位进行精确查询
+			mobileprefix = mobileprefix.substring(0, 7);
+			mSql = "select _id,mobileprefix,area,city,cardtype from info where mobileprefix=? group by city limit ?,?";
+			mCursor = db.rawQuery(mSql, new String[] { mobileprefix, String.valueOf(offset), String.valueOf(count) });
+		} else { // 长度小于7位,直接进行模糊查询(%通配符)
+			mSql = "select _id,mobileprefix,area,city,cardtype from info where mobileprefix like ? group by city limit ?,?";
+			mCursor = db.rawQuery(mSql,
+					new String[] { mobileprefix + "%", String.valueOf(offset), String.valueOf(count) });
+		}
+
+		if (mCursor != null) {
+			while (mCursor.moveToNext()) {
+				infos.add(new AddressInfo(mCursor.getInt(0), mCursor.getString(1), mCursor.getString(2),
+						mCursor.getString(3), mCursor.getString(4)));
+			}
+			mCursor.close();
+		}
+		db.close();
+		return infos;
+	}
+
+}

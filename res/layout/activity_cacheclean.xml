@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <TextView
+        style="@style/pageTitle"
+        android:text="缓存清理" />
+
+    <RelativeLayout
+        android:id="@+id/rl_cacheclaen_scan"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:background="#4098D0" >
+
+        <FrameLayout
+            android:id="@+id/fl_cacheclean_pic"
+            style="@style/wrapAndWrap"
+            android:layout_centerVertical="true" >
+
+            <ImageView
+                android:id="@+id/iv_cacheclean_icon"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginLeft="10dp"
+                android:background="@drawable/scan_bg"
+                android:src="@drawable/ic_launcher" />
+
+            <ImageView
+                android:id="@+id/iv_cacheclean_line"
+                android:layout_width="60dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top"
+                android:layout_marginLeft="10dp"
+                android:background="@drawable/scan_line" />
+        </FrameLayout>
+
+        <LinearLayout
+            style="@style/matchAndWrap"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="10dp"
+            android:layout_toRightOf="@id/fl_cacheclean_pic"
+            android:orientation="vertical" >
+
+            <com.zyx1011.mobilesafe002.view.ProgressDes
+                android:id="@+id/pd_cacheclean_progress"
+                android:layout_width="match_parent"
+                android:layout_height="15dp" />
+
+            <TextView
+                android:id="@+id/tv_cacheclean_name"
+                style="@style/matchAndWrap"
+                android:layout_marginTop="5dp"
+                android:ellipsize="start"
+                android:singleLine="true"
+                android:textColor="@android:color/white"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/tv_cacheclean_packagename"
+                style="@style/matchAndWrap"
+                android:ellipsize="start"
+                android:singleLine="true"
+                android:textColor="@android:color/white" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/fl_cacheclean_result"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:background="#4098D0"
+        android:orientation="horizontal"
+        android:visibility="gone" >
+
+        <TextView
+            android:id="@+id/tv_cacheclean_result"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="10dp"
+            android:layout_weight="1"
+            android:ellipsize="start"
+            android:singleLine="true"
+            android:textColor="@android:color/white"
+            android:textSize="18sp" />
+
+        <Button
+            android:id="@+id/btn_cacheclean_reset"
+            android:layout_width="85dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginRight="10dp"
+            android:background="@drawable/tv_protect_pagebtn_selector"
+            android:onClick="rescanClick"
+            android:text="快速扫描"
+            android:textColor="@android:color/white" />
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/lv_cacheclean_info"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" >
+    </ListView>
+
+    <Button
+        android:id="@+id/btn_cacheclean_clean"
+        style="@style/matchAndWrap"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:background="@drawable/tv_protect_pagebtn_selector"
+        android:onClick="clsClick"
+        android:text="一键清理"
+        android:textColor="@android:color/white"
+        android:visibility="gone" />
+
+</LinearLayout>

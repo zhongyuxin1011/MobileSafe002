@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <FrameLayout style="@style/matchAndWrap" >
+
+        <TextView style="@style/pageTitle" />
+
+        <com.zyx1011.mobilesafe002.view.SegmentView
+            android:id="@+id/sv_applock_switch"
+            style="@style/wrapAndWrap"
+            android:layout_gravity="center" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/tv_applock_item"
+        style="@style/matchAndWrap"
+        android:background="@android:color/holo_purple"
+        android:padding="5dp"
+        android:textSize="15sp" />
+
+    <FrameLayout style="@style/matchAndMatch" >
+
+        <include
+            android:id="@+id/line_applock_loading"
+            layout="@layout/loading" />
+
+        <ListView
+            android:id="@+id/lv_applock_list"
+            style="@style/matchAndMatch"
+            android:divider="#E7E7E7"
+            android:dividerHeight="1dp" >
+        </ListView>
+    </FrameLayout>
+
+</LinearLayout>

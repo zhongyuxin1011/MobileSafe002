@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/matchAndWrap" >
+
+    <LinearLayout
+        android:id="@+id/line_intercept_layout"
+        style="@style/matchAndWrap"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="10dp"
+        android:orientation="vertical"
+        android:padding="10dp" >
+
+        <TextView
+            android:id="@+id/tv_intercept_item_phone"
+            style="@style/wrapAndWrap"
+            android:textColor="@android:color/black"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/tv_intercept_item_type"
+            style="@style/wrapAndWrap"
+            android:layout_marginTop="5dp" />
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/iv_intercept_item_delete"
+        style="@style/wrapAndWrap"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="15dp"
+        android:background="@drawable/iv_interceptharry_delete_selector"
+        android:clickable="true" />
+
+</RelativeLayout>

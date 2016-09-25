@@ -1,0 +1,257 @@
+package com.zyx1011.mobilesafe002;
+
+import java.util.List;
+
+import com.lidroid.xutils.ViewUtils;
+import com.lidroid.xutils.view.annotation.ContentView;
+import com.lidroid.xutils.view.annotation.ViewInject;
+import com.lidroid.xutils.view.annotation.event.OnClick;
+import com.zyx1011.mobilesafe002.db.MDbDao;
+import com.zyx1011.mobilesafe002.entity.InterceptInfo;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.BaseAdapter;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+@ContentView(R.layout.activity_interceptharry)
+public class InterceptHarryActivity extends Activity {
+
+	@ViewInject(R.id.lv_interceptharry_infos)
+	private ListView mLvInfos;
+
+	@ViewInject(R.id.line_interceptharry_loading)
+	private LinearLayout mLineLoading;
+
+	@ViewInject(R.id.iv_intercept_empty)
+	private ImageView mFlEmpty;
+
+	private List<InterceptInfo> mInfos;
+	private MDbDao mDao;
+	private phoneAdapter mAdapter;
+
+	/**
+	 * ListView适配器
+	 * 
+	 * @author zhongyuxin
+	 */
+	private class phoneAdapter extends BaseAdapter {
+
+		private InterceptInfo mInfo;
+
+		@Override
+		public int getCount() {
+			return mInfos.size();
+		}
+
+		@Override
+		public Object getItem(int position) {
+			return mInfos.get(position);
+		}
+
+		@Override
+		public long getItemId(int position) {
+			return position;
+		}
+
+		@Override
+		public View getView(final int position, View convertView, ViewGroup parent) {
+			ViewHolder holder = null;
+			mInfo = mInfos.get(position);
+
+			if (convertView == null) {
+				holder = new ViewHolder();
+				convertView = View.inflate(InterceptHarryActivity.this, R.layout.listview_intercept_item, null);
+
+				convertView.setTag(holder);
+
+				holder.tvPhone = (TextView) convertView.findViewById(R.id.tv_intercept_item_phone);
+				holder.tvType = (TextView) convertView.findViewById(R.id.tv_intercept_item_type);
+				holder.ivDelete = (ImageView) convertView.findViewById(R.id.iv_intercept_item_delete);
+			} else {
+				holder = (ViewHolder) convertView.getTag();
+			}
+
+			holder.tvPhone.setText(mInfo.getPhone());
+			holder.tvType.setText(interceptType(mInfo));
+			itemDelete(position, holder);
+
+			return convertView;
+		}
+	}
+
+	/**
+	 * 删除item项
+	 * 
+	 * @param position
+	 * @param holder
+	 */
+	private void itemDelete(final int position, ViewHolder holder) {
+		holder.ivDelete.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				AlertDialog.Builder builder = new Builder(InterceptHarryActivity.this);
+				builder.setTitle("提示:").setIcon(android.R.drawable.ic_delete).setMessage("是否删除该号码?")
+						.setPositiveButton("是", new DialogInterface.OnClickListener() {
+
+							@Override
+							public void onClick(DialogInterface dialog, int which) {
+								if (mDao.delete(mInfos.get(position).getPhone())) {
+									setData();
+									Toast.makeText(InterceptHarryActivity.this, "删除成功!", Toast.LENGTH_SHORT).show();
+								} else {
+									Toast.makeText(InterceptHarryActivity.this, "删除失败!", Toast.LENGTH_SHORT).show();
+								}
+								dialog.dismiss();
+							}
+						}).setNegativeButton("否", null).show();
+			}
+		});
+	}
+
+	/**
+	 * 判断拦截类型
+	 * 
+	 * @param position
+	 * @return
+	 */
+	private String interceptType(InterceptInfo info) {
+		String tag = "";
+		switch (info.getType()) {
+		case 0:
+			tag = "电话拦截";
+			break;
+
+		case 1:
+			tag = "短信拦截";
+			break;
+
+		case 2:
+			tag = "全部拦截";
+			break;
+
+		default:
+			break;
+		}
+		return tag;
+	}
+
+	/**
+	 * ListView优化
+	 * 
+	 * @author zhongyuxin
+	 */
+	private class ViewHolder {
+		private TextView tvPhone;
+		private TextView tvType;
+		private ImageView ivDelete;
+	}
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		ViewUtils.inject(this);
+
+		mLineLoading.setVisibility(View.VISIBLE);
+		initEvent();
+		setData();
+	}
+
+	/**
+	 * 给ListView设置监听器
+	 */
+	private void initEvent() {
+		mLvInfos.setOnItemClickListener(new OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+				Intent intent = new Intent(InterceptHarryActivity.this, AddInerceptActivity.class);
+				Bundle extras = new Bundle();
+				extras.putSerializable("INFO", mInfos.get(position));
+				intent.putExtras(extras);
+				startActivityForResult(intent, 3);
+			}
+		});
+	}
+
+	/**
+	 * 设置数据
+	 */
+	private void setData() {
+		mDao = new MDbDao(this);
+		new Thread(new Runnable() {
+			public void run() {
+				mInfos = mDao.findAll(); // 获取数据库中的所有记录
+
+				runOnUiThread(new Runnable() {
+					public void run() {
+						setView();
+					}
+				});
+			}
+		}).start();
+	}
+
+	/**
+	 * 初始化数据
+	 */
+	private void setView() {
+		if (mInfos != null) {
+			mLineLoading.setVisibility(View.GONE);
+			int len = mInfos.size();
+			if (len >= 0) {
+				mFlEmpty.setVisibility(View.GONE);
+
+				if (mAdapter == null) {
+					mAdapter = new phoneAdapter();
+					mLvInfos.setAdapter(mAdapter);
+				}
+
+				mAdapter.notifyDataSetChanged(); // 通知ListView数据发生改变
+
+				// 无数据则提示添加
+				if (len == 0) {
+					mFlEmpty.setVisibility(View.VISIBLE);
+				}
+			}
+		}
+	}
+
+	@OnClick(R.id.iv_interceptharry_add)
+	public void addClick(View v) {
+		Intent intent = new Intent(this, AddInerceptActivity.class);
+		startActivityForResult(intent, 2);
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+		switch (requestCode) {
+		case 2:
+		case 3:
+			if (resultCode == RESULT_OK) {
+				mLineLoading.setVisibility(View.VISIBLE);
+				setData(); // 更新ListView
+			}
+			break;
+
+		default:
+			break;
+		}
+	}
+
+}

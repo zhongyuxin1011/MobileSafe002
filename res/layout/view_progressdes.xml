@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal" >
+
+    <TextView
+        android:id="@+id/tv_progressdes_type"
+        android:layout_width="45dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="5dp"
+        android:textSize="15sp" />
+
+    <FrameLayout
+        style="@style/matchAndMatch"
+        android:layout_margin="2dp" >
+
+        <ProgressBar
+            android:id="@+id/pb_progressdes_show"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginRight="3dp"
+            android:progressDrawable="@drawable/pb_progressdes_show" />
+
+        <TextView
+            android:id="@+id/tv_progressdes_used"
+            style="@style/wrapAndWrap"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="8dp"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tv_progressdes_free"
+            style="@style/wrapAndWrap"
+            android:layout_gravity="right|center_vertical"
+            android:layout_marginRight="8dp"
+            android:textSize="12sp" />
+    </FrameLayout>
+
+</LinearLayout>

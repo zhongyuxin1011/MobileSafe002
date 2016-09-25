@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <TextView
+        style="@style/pageTitle"
+        android:text="程序锁" />
+
+    <ImageView
+        android:id="@+id/iv_lockscreen_icon"
+        style="@style/wrapAndWrap"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="90dp"
+        android:src="@drawable/ic_launcher" />
+
+    <TextView
+        android:id="@+id/tv_lockscreen_name"
+        style="@style/wrapAndWrap"
+        android:layout_below="@id/iv_lockscreen_icon"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="30dp"
+        android:ellipsize="middle"
+        android:singleLine="true"
+        android:text="黑马手机卫士"
+        android:textSize="18sp" />
+
+    <EditText
+        android:id="@+id/et_lockscreen_pass"
+        style="@style/matchAndWrap"
+        android:layout_below="@id/tv_lockscreen_name"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="20dp"
+        android:hint="请输入解锁密码"
+        android:inputType="textPassword"
+        android:maxLength="6"
+        android:textSize="15sp" />
+
+    <Button
+        android:id="@+id/btn_lockscreen_submit"
+        style="@style/matchAndWrap"
+        android:onClick="passClick"
+        android:layout_below="@id/et_lockscreen_pass"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/tv_protect_pagebtn_selector"
+        android:text="确定"
+        android:textColor="@android:color/white" />
+
+</RelativeLayout>
